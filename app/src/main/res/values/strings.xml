@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">CheckInMap</string>
+    <string name="title_activity_check_in_map">Check In Map</string>
+    <string name="location_permission_rationale">La aplicación debe acceder a la ubicación del dispositivo para poder
+    realizar tareas de check in y check out</string>
+    <string name="accept">Aceptar</string>
+    <string name="check_in">Check in</string>
+    <string name="check_out">Check out</string>
+    <string name="time">Tiempo</string>
+    <string name="latitude">Latitude:</string>
+    <string name="lang">Longitud:</string>
+    <string name="initial_time">00:00:00</string>
+    <string name="gps_disable_message">Su GPS se encuentra deshabilitado.¿Desea habilitarlo?</string>
+    <string name="cancel">Cancelar</string>
+    <string name="go_to_settings">Ir a la configuración</string>
+</resources>
