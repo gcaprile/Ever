@@ -1,11 +1,30 @@
 <resources>
+    <!-- GENERAL STRINGS-->
     <string name="app_name">CheckInMap</string>
+
+   <!-- DRAWER STRINGS-->
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="my_information">Mi información</string>
+    <string name="my_accounts">Mis cuentas</string>
+    <string name="sync">Sincronizar</string>
+    <string name="exit">Salir</string>
+
+    <!-- MAIN ACTIVITY STRINGS-->
+    <string name="emasal">Emasal</string>
+    <string name="start_route">Iniciar ruta</string>
+    <string name="connected_like_sales_person">Conectado como vendedor</string>
+    <string name="connected_like_manager">Conectado como administrador</string>
+
+    <!-- MAP ACTIVITY STRINGS-->
     <string name="title_activity_check_in_map">Check In Map</string>
     <string name="location_permission_rationale">La aplicación debe acceder a la ubicación del dispositivo para poder
     realizar tareas de check in y check out</string>
-    <string name="accept">Aceptar</string>
     <string name="check_in">Check in</string>
     <string name="check_out">Check out</string>
+    <string name="checking_is_in_progress">Check in es en progreso</string>
+    <string name="no_user_location_available">No fue posible obtener la ubicación del usuario</string>
+    <string name="accept">Aceptar</string>
     <string name="time">Tiempo</string>
     <string name="latitude">Latitude:</string>
     <string name="lang">Longitud:</string>
@@ -13,4 +32,16 @@
     <string name="gps_disable_message">Su GPS se encuentra deshabilitado.¿Desea habilitarlo?</string>
     <string name="cancel">Cancelar</string>
     <string name="go_to_settings">Ir a la configuración</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="connection_failed_play_services_message">Algo salió mal tratando de conectar a Google Play Services</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="location_permission_denied">We need your location</string>
+    <string name="start_tracker">Start tracker</string>
+    <string name="view_history_list">View History List</string>
+    <string name="stop_tracker">Stop Tracker</string>
+    <string name="history">History</string>
+    <string name="date">Date</string>
+    <string name="coordinates">Coordinates</string>
+    <string name="finalize_route">Finalizar ruta</string>
 </resources>

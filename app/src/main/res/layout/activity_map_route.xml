@@ -1,0 +1,89 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context="com.app.checkinmap.ui.activity.MapRouteActivity" />
+
+        <LinearLayout
+            android:id="@+id/linear_layout_check_progress"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/colorBlackTransparent"
+            android:visibility="gone"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_height="wrap_content" />
+
+            </FrameLayout>
+
+            <Chronometer
+                android:id="@+id/chronometer_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorText"
+                android:gravity="center"
+                android:textSize="35sp"
+                android:layout_gravity="bottom"
+                android:layout_marginBottom="30dp"
+                android:text="@string/initial_time"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/linear_layout_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/colorWhite"
+        android:gravity="center"
+        android:minHeight="50dp"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/button_finalize_route"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/finalize_route"
+            android:theme="@style/BlackButton"
+            android:layout_marginEnd="5dp"
+            android:textColor="@color/colorWhite" />
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/button_check"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/check_in"
+            android:layout_marginStart="5dp"
+            android:theme="@style/BlackButton"
+            android:textColor="@color/colorWhite" />
+
+
+    </LinearLayout>
+</LinearLayout>
+
+

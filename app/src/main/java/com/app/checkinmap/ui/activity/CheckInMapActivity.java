@@ -1,4 +1,4 @@
-package com.app.checkinmap;
+package com.app.checkinmap.ui.activity;
 
 import android.Manifest;
 import android.content.Context;
@@ -22,6 +22,7 @@ import android.widget.Chronometer;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.app.checkinmap.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.AutocompleteFilter;

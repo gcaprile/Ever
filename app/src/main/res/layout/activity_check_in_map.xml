@@ -4,7 +4,7 @@
     android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.app.checkinmap.CheckInMapActivity">
+    tools:context="com.app.checkinmap.ui.activity.CheckInMapActivity">
 
 
     <fragment
@@ -12,7 +12,7 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.app.checkinmap.CheckInMapActivity" />
+        tools:context="com.app.checkinmap.ui.activity.CheckInMapActivity" />
 
     <LinearLayout
         android:id="@+id/linear_layout_controls"
