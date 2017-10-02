@@ -74,9 +74,9 @@ public class DashBoardActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_my_information) {
-            // Handle the camera action
+            startActivity(MyInformationActivity.getIntent(this));
         } else if (id == R.id.nav_my_accounts) {
-
+            startActivity(MyAccountsActivity.getIntent(this));
         } else if (id == R.id.nav_sync) {
 
         } else if (id == R.id.nav_exit) {

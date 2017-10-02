@@ -1,5 +1,6 @@
 package com.app.checkinmap.db;
 
+import com.app.checkinmap.model.CheckPointLocation;
 import com.app.checkinmap.model.UserLocation;
 
 import java.util.List;
@@ -28,5 +29,16 @@ public class DatabaseManager {
         }
         realm.close();
         return userLocationList;
+    }
+
+    public List<CheckPointLocation> getCheckPointLocationList(){
+        Realm realm = Realm.getDefaultInstance();
+        RealmResults<CheckPointLocation> query = realm.where(CheckPointLocation.class).findAll();
+        List<CheckPointLocation> checkPointLocationList = null;
+        if(query != null){
+            checkPointLocationList = realm.copyFromRealm(query);
+        }
+        realm.close();
+        return checkPointLocationList;
     }
 }

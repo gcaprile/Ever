@@ -135,6 +135,10 @@ public class MapRouteActivity extends FragmentActivity implements OnMapReadyCall
         stopLocationService();
     }
 
+    /**
+     * This method help us to check if
+     * we the permissions
+     */
     private  boolean checkAndRequestPermissions() {
         int locationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         List<String> listPermissionsNeeded = new ArrayList<>();
@@ -188,6 +192,7 @@ public class MapRouteActivity extends FragmentActivity implements OnMapReadyCall
     public void finalizeRoute(){
         if(!mIsChecking){
             stopLocationService();
+            startActivity(HistoryActivity.getIntent(this));
             finish();
         }else{
             Toast.makeText(this,R.string.checking_is_in_progress,Toast.LENGTH_LONG).show();
@@ -232,12 +237,7 @@ public class MapRouteActivity extends FragmentActivity implements OnMapReadyCall
     @OnClick(R.id.button_check)
     public void checkUserLocation(){
         if(mIsChecking){
-            mIsChecking = false;
-            mBtnCheck.setText(R.string.check_in);
-            mLnlCheckProgress.setVisibility(View.GONE);
-            mChronometer.stop();
-            getUserLocation();
-            startLocationService();
+            showCheckInFinalizeMessage();
         }else{
             mIsChecking = true;
             mBtnCheck.setText(R.string.check_out);
@@ -417,5 +417,40 @@ public class MapRouteActivity extends FragmentActivity implements OnMapReadyCall
                     }
                 }).setCancelable(false).show();
 
+    }
+
+    /**
+     * This method help us to show a message
+     * to indicate the check in is going to
+     * finalize
+     */
+    public void showCheckInFinalizeMessage(){
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.app_name)
+                .setMessage(R.string.check_in_finalize)
+                .setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        finalizeCheckIn();
+                    }
+                }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        }).setCancelable(false).show();
+    }
+
+    /**
+     * This method finalize the check in
+     * action
+     */
+    public void finalizeCheckIn(){
+        mIsChecking = false;
+        mBtnCheck.setText(R.string.check_in);
+        mLnlCheckProgress.setVisibility(View.GONE);
+        mChronometer.stop();
+        getUserLocation();
+        startLocationService();
     }
 }

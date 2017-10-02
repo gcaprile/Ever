@@ -1,9 +1,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:CircleProgressView="http://schemas.android.com/apk/res-auto"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:orientation="vertical"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -22,18 +23,30 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/colorBlackTransparent"
-            android:visibility="gone"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1">
 
-                <ProgressBar
-                    android:layout_width="wrap_content"
+                <at.grabner.circleprogress.CircleProgressView
+                    android:id="@+id/circleView"
+                    android:layout_width="277dp"
+                    android:layout_height="277dp"
                     android:layout_gravity="center"
-                    android:layout_height="wrap_content" />
+                    CircleProgressView:cpv_barColor="@color/colorPrimary"
+                    CircleProgressView:cpv_rimColor="@color/colorPrimary"
+                    CircleProgressView:cpv_barWidth="35dp"
+                    CircleProgressView:cpv_showTextInSpinningMode="false"
+                    CircleProgressView:cpv_spin="true"
+                    CircleProgressView:cpv_outerContourSize="0dp"
+                    CircleProgressView:cpv_innerContourSize="0dp"
+                    CircleProgressView:cpv_blockCount="18"
+                    CircleProgressView:cpv_blockScale="0.9"
+                    CircleProgressView:cpv_spinBarLength="20"
+                    CircleProgressView:cpv_spinColor="@color/colorPrimary" />
 
             </FrameLayout>
 
@@ -41,12 +54,12 @@
                 android:id="@+id/chronometer_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/colorText"
-                android:gravity="center"
-                android:textSize="35sp"
                 android:layout_gravity="bottom"
                 android:layout_marginBottom="30dp"
-                android:text="@string/initial_time"/>
+                android:gravity="center"
+                android:text="@string/initial_time"
+                android:textColor="@color/colorText"
+                android:textSize="60sp" />
 
         </LinearLayout>
 
@@ -68,19 +81,19 @@
             android:id="@+id/button_finalize_route"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/finalize_route"
-            android:theme="@style/BlackButton"
             android:layout_marginEnd="5dp"
-            android:textColor="@color/colorWhite" />
+            android:text="@string/finalize_route"
+            android:textColor="@color/colorWhite"
+            android:theme="@style/BlackButton" />
 
         <android.support.v7.widget.AppCompatButton
             android:id="@+id/button_check"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/check_in"
             android:layout_marginStart="5dp"
-            android:theme="@style/BlackButton"
-            android:textColor="@color/colorWhite" />
+            android:text="@string/check_in"
+            android:textColor="@color/colorWhite"
+            android:theme="@style/BlackButton" />
 
 
     </LinearLayout>

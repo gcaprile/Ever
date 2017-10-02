@@ -2,7 +2,7 @@
     <!-- GENERAL STRINGS-->
     <string name="app_name">CheckInMap</string>
 
-   <!-- DRAWER STRINGS-->
+    <!-- DRAWER STRINGS-->
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="my_information">Mi información</string>
@@ -22,7 +22,7 @@
     realizar tareas de check in y check out</string>
     <string name="check_in">Check in</string>
     <string name="check_out">Check out</string>
-    <string name="checking_is_in_progress">Check in es en progreso</string>
+    <string name="checking_is_in_progress">Check in en progreso</string>
     <string name="no_user_location_available">No fue posible obtener la ubicación del usuario</string>
     <string name="accept">Aceptar</string>
     <string name="time">Tiempo</string>
@@ -40,8 +40,16 @@
     <string name="start_tracker">Start tracker</string>
     <string name="view_history_list">View History List</string>
     <string name="stop_tracker">Stop Tracker</string>
-    <string name="history">History</string>
-    <string name="date">Date</string>
-    <string name="coordinates">Coordinates</string>
+    <string name="history">Recorrido</string>
+    <string name="date">Fecha</string>
+    <string name="coordinates">Coordenadas</string>
     <string name="finalize_route">Finalizar ruta</string>
+    <string name="distance_traveled">Kilometraje recorrido:</string>
+    <string name="used_time">Tiempo completado:</string>
+    <string name="visit_number">Número de visitas:</string>
+    <string name="route_complete_information">Información de ruta completada</string>
+    <string name="check_in_finalize">Esta a punto de finalizar el check in, volverá a estar en ruta</string>
+    <string name="lorem_ipsum">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s</string>
+    <string name="lorem_ipsum_title">Lorem Ipsum is simply dummy text.</string>
+    <string name="completed_route">Ruta completada</string>
 </resources>
