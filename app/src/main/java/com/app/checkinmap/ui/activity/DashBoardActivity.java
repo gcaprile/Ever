@@ -12,6 +12,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import com.app.checkinmap.R;
+import com.salesforce.androidsdk.app.SalesforceSDKManager;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -80,7 +81,7 @@ public class DashBoardActivity extends AppCompatActivity
         } else if (id == R.id.nav_sync) {
 
         } else if (id == R.id.nav_exit) {
-
+            SalesforceSDKManager.getInstance().logout(this);
         }
 
         //DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

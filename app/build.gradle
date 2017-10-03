@@ -37,4 +37,8 @@ dependencies {
     compile 'com.github.jakob-grabner:Circle-Progress-View:v1.3'
     testCompile 'junit:junit:4.12'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+    compile 'com.salesforce.mobilesdk:SalesforceSDK:5.3.0'
+    compile 'com.salesforce.mobilesdk:SmartSync:5.3.0'
+    compile "com.google.android.gms:play-services-gcm:11.4.0"
+    compile 'com.google.code.gson:gson:2.7'
 }

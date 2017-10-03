@@ -1,6 +1,6 @@
 <resources>
     <!-- GENERAL STRINGS-->
-    <string name="app_name">CheckInMap</string>
+    <string name="app_name">Emasal</string>
 
     <!-- DRAWER STRINGS-->
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -17,7 +17,7 @@
     <string name="connected_like_manager">Conectado como administrador</string>
 
     <!-- MAP ACTIVITY STRINGS-->
-    <string name="title_activity_check_in_map">Check In Map</string>
+    <string name="title_activity_check_in_map">Emasal</string>
     <string name="location_permission_rationale">La aplicación debe acceder a la ubicación del dispositivo para poder
     realizar tareas de check in y check out</string>
     <string name="check_in">Check in</string>
@@ -52,4 +52,11 @@
     <string name="lorem_ipsum">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s</string>
     <string name="lorem_ipsum_title">Lorem Ipsum is simply dummy text.</string>
     <string name="completed_route">Ruta completada</string>
+
+
+    <string name="welcome">Welcome %s</string>
+    <string name="logout_button">Logout</string>
+    <string name="fetch_contacts_button">Fetch Contacts</string>
+    <string name="fetch_accounts_button">Fetch Accounts</string>
+    <string name="clear_button">Clear</string>
 </resources>

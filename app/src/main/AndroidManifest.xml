@@ -16,6 +16,7 @@
         android:label="@string/emasal"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:manageSpaceActivity="com.salesforce.androidsdk.ui.ManageSpaceActivity"
         android:theme="@style/AppTheme">
 
         <!--
@@ -34,15 +35,24 @@
             android:name=".ui.activity.CheckInMapActivity"
             android:label="@string/title_activity_check_in_map"
             android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".ui.activity.MainActivity"
+            android:label="@string/title_activity_check_in_map"
+            android:screenOrientation="portrait" >
+
+        </activity>
         <activity
             android:name=".ui.activity.SplashScreenActivity"
             android:screenOrientation="portrait"
             android:theme="@style/FullScreenTheme">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
         <activity
             android:name=".ui.activity.DashBoardActivity"

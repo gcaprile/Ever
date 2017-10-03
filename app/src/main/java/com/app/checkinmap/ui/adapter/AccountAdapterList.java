@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.app.checkinmap.R;
+import com.app.checkinmap.model.Record;
 import com.app.checkinmap.model.UserLocation;
 
 import java.text.SimpleDateFormat;
@@ -19,9 +20,10 @@ import butterknife.ButterKnife;
 
 public class AccountAdapterList extends RecyclerView.Adapter<AccountAdapterList.AccountViewHolder>{
 
+    private List<Record> mRecordList;
 
-    public AccountAdapterList(){
-
+    public AccountAdapterList(List<Record> recordList){
+        mRecordList = recordList;
     }
 
     @Override
@@ -33,13 +35,13 @@ public class AccountAdapterList extends RecyclerView.Adapter<AccountAdapterList.
 
     @Override
     public void onBindViewHolder(AccountViewHolder holder, int position) {
-        holder.tvTitle.setText("Cuenta "+(position+1));
-
+        holder.tvTitle.setText(mRecordList.get(position).getName());
+        holder.tvDescription.setText(mRecordList.get(position).getAttributes().getUrl());
     }
 
     @Override
     public int getItemCount() {
-        return 20;
+        return mRecordList.size();
     }
 
 
@@ -48,6 +50,9 @@ public class AccountAdapterList extends RecyclerView.Adapter<AccountAdapterList.
 
         @BindView(R.id.text_view_title)
         TextView tvTitle;
+
+        @BindView(R.id.text_view_description)
+        TextView tvDescription;
 
         AccountViewHolder(View view){
             super(view);
