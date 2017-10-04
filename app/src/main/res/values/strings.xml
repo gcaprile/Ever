@@ -14,7 +14,7 @@
     <string name="emasal">Emasal</string>
     <string name="start_route">Iniciar ruta</string>
     <string name="connected_like_sales_person">Conectado como vendedor</string>
-    <string name="connected_like_manager">Conectado como administrador</string>
+    <string name="connected_like_technical">Conectado como técnico</string>
 
     <!-- MAP ACTIVITY STRINGS-->
     <string name="title_activity_check_in_map">Emasal</string>
@@ -52,6 +52,7 @@
     <string name="lorem_ipsum">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s</string>
     <string name="lorem_ipsum_title">Lorem Ipsum is simply dummy text.</string>
     <string name="completed_route">Ruta completada</string>
+    <string name="check_rol_explanation">Para cambiar de rol debe finalizar la ruta</string>
 
 
     <string name="welcome">Welcome %s</string>
@@ -59,4 +60,17 @@
     <string name="fetch_contacts_button">Fetch Contacts</string>
     <string name="fetch_accounts_button">Fetch Accounts</string>
     <string name="clear_button">Clear</string>
+    <string name="seller">Vendedor</string>
+    <string name="search">Buscar</string>
+    <string name="technical">Técnico</string>
+    <string name="my_orders">Mis ordenes</string>
+    <string name="my_work_orders">Mis ordenes de trabajo</string>
+    <string name="account_description">Descripción de la cuenta</string>
+    <string name="work_order_description">Descripción de la orden de trabajo</string>
+    <string name="you_should_start_the_route">Debes iniciar la ruta antes de realizar esta acción</string>
+    <string name="no_address_title">Sin dirección</string>
+    <string name="no_address_description">Este cliente no tiene dirección registrada en el sistema. Se registrará una nueva dirección con su ubicación actual</string>
+    <string name="finalize">Finalizar</string>
+    <string name="in_process">En proceso</string>
+    <string name="electronic_signature">Firma electrónica</string>
 </resources>

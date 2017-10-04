@@ -14,9 +14,9 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/emasal"
+        android:manageSpaceActivity="com.salesforce.androidsdk.ui.ManageSpaceActivity"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:manageSpaceActivity="com.salesforce.androidsdk.ui.ManageSpaceActivity"
         android:theme="@style/AppTheme">
 
         <!--
@@ -35,24 +35,19 @@
             android:name=".ui.activity.CheckInMapActivity"
             android:label="@string/title_activity_check_in_map"
             android:screenOrientation="portrait" />
-
         <activity
             android:name=".ui.activity.MainActivity"
             android:label="@string/title_activity_check_in_map"
-            android:screenOrientation="portrait" >
-
-        </activity>
+            android:screenOrientation="portrait"></activity>
         <activity
             android:name=".ui.activity.SplashScreenActivity"
             android:screenOrientation="portrait"
             android:theme="@style/FullScreenTheme">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
         <activity
             android:name=".ui.activity.DashBoardActivity"
@@ -61,20 +56,22 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".ui.activity.MapRouteActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_maps" />
+            android:label="@string/title_activity_maps"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.activity.HistoryActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/history" />
+            android:label="@string/history"
+            android:screenOrientation="portrait" />
 
         <service android:name=".service.LocationService" />
 
-        <activity android:name=".ui.activity.MyAccountsActivity"
-            android:screenOrientation="portrait"/>
-
-        <activity android:name=".ui.activity.MyInformationActivity"
-            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.activity.MyAccountsActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.MyInformationActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".ui.activity.SignatureActivity"></activity>
     </application>
 
 </manifest>

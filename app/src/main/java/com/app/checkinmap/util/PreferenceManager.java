@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 public class PreferenceManager {
 
     private static final String PREFERENCE_SERVICES_STARTED = "service_started";
+    private static final String PREFERENCE_IS_SELLER = "is_seller";
+    private static final String PREFERENCE_IS_IN_ROUTE = "is_in_route";
 
     private static PreferenceManager mInstance;
     private SharedPreferences mPreferences;
@@ -29,5 +31,21 @@ public class PreferenceManager {
 
     public boolean isServiceEnabled(){
         return mPreferences.getBoolean(PREFERENCE_SERVICES_STARTED, false);
+    }
+
+    public void setIsSeller(boolean isSeller){
+        mPreferences.edit().putBoolean(PREFERENCE_IS_SELLER, isSeller).apply();
+    }
+
+    public boolean isSeller(){
+        return mPreferences.getBoolean(PREFERENCE_IS_SELLER, true);
+    }
+
+    public void setIsInRoute(boolean isInRoute){
+        mPreferences.edit().putBoolean(PREFERENCE_IS_IN_ROUTE, isInRoute).apply();
+    }
+
+    public boolean isInRoute(){
+        return mPreferences.getBoolean(PREFERENCE_IS_IN_ROUTE, false);
     }
 }

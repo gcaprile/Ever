@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -16,6 +18,7 @@ import com.app.checkinmap.model.Record;
 import com.app.checkinmap.ui.adapter.AccountAdapterList;
 import com.app.checkinmap.ui.adapter.HistoryAdapterList;
 import com.app.checkinmap.util.ApiManager;
+import com.app.checkinmap.util.PreferenceManager;
 import com.app.checkinmap.util.Utility;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -56,7 +59,11 @@ public class MyAccountsActivity extends AppCompatActivity {
 
         if(getSupportActionBar() != null){
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(R.string.my_accounts);
+            if(PreferenceManager.getInstance(this).isSeller()){
+                getSupportActionBar().setTitle(R.string.my_accounts);
+            }else{
+                getSupportActionBar().setTitle(R.string.my_work_orders);
+            }
         }
 
         mRv.setHasFixedSize(true);
@@ -76,13 +83,24 @@ public class MyAccountsActivity extends AppCompatActivity {
                             try {
                                 final List<Record> recordList = new Gson().fromJson(jsonObject.getJSONArray("records").toString(), listType);
 
-                                AccountAdapterList adapter = new AccountAdapterList(recordList);
+                                AccountAdapterList adapter = new AccountAdapterList(getApplicationContext(),recordList);
+                                adapter.setOnItemClickListener(new AccountAdapterList.OnItemClickListener() {
+                                    @Override
+                                    public void onItemClick(String selection) {
+                                        if(PreferenceManager.getInstance(getApplicationContext()).isInRoute()){
+                                            startActivity(MapRouteActivity.getIntent(getApplicationContext(),selection));
+                                            finish();
+                                        }else{
+                                            Toast.makeText(getApplicationContext(),R.string.you_should_start_the_route,Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                                });
                                 mRv.setAdapter(adapter);
                                 mRv.setVisibility(View.VISIBLE);
 
                             } catch (JSONException e) {
                                 e.printStackTrace();
-                                Toast.makeText(getApplicationContext(),"Error al obtener las cuentas",Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(),"Error al obtener los datos",Toast.LENGTH_LONG).show();
                             }
                         }else{
                             Toast.makeText(getApplicationContext(),"Error en la peticion",Toast.LENGTH_LONG).show();
@@ -93,6 +111,12 @@ public class MyAccountsActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.search, menu);
+        return true;
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

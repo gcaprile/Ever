@@ -151,7 +151,7 @@ public class HistoryActivity extends AppCompatActivity {
                 long diffHours = diff / (60 * 60 * 1000) % 24;
                 long diffDays = diff / (24 * 60 * 60 * 1000);
 
-                time = diffDays+" días "+diffHours+" horas "+ diffMinutes+" minutos "+diffSeconds+" segundos";
+                time = diffHours+" horas "+ diffMinutes+" minutos ";
 
             } catch (Exception e) {
                 e.printStackTrace();

@@ -22,6 +22,7 @@
             android:id="@+id/linear_layout_check_progress"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:clickable="true"
             android:background="@color/colorBlackTransparent"
             android:orientation="vertical"
             android:visibility="gone">
@@ -39,7 +40,10 @@
                     CircleProgressView:cpv_barColor="@color/colorPrimary"
                     CircleProgressView:cpv_rimColor="@color/colorPrimary"
                     CircleProgressView:cpv_barWidth="35dp"
-                    CircleProgressView:cpv_showTextInSpinningMode="false"
+                    CircleProgressView:cpv_showTextInSpinningMode="true"
+                    CircleProgressView:cpv_text="@string/in_process"
+                    CircleProgressView:cpv_textMode="Text"
+                    CircleProgressView:cpv_textColor="@color/colorGray"
                     CircleProgressView:cpv_spin="true"
                     CircleProgressView:cpv_outerContourSize="0dp"
                     CircleProgressView:cpv_innerContourSize="0dp"
@@ -47,6 +51,16 @@
                     CircleProgressView:cpv_blockScale="0.9"
                     CircleProgressView:cpv_spinBarLength="20"
                     CircleProgressView:cpv_spinColor="@color/colorPrimary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/colorWhite"
+                    android:text="@string/in_process"
+                    android:textAllCaps="true"
+                    android:textStyle="bold"
+                    android:layout_gravity="center"
+                    android:textSize="26sp"/>
 
             </FrameLayout>
 
@@ -83,6 +97,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="5dp"
             android:text="@string/finalize_route"
+            android:visibility="gone"
             android:textColor="@color/colorWhite"
             android:theme="@style/BlackButton" />
 

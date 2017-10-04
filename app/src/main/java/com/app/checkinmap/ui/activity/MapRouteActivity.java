@@ -15,6 +15,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -38,6 +39,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -52,9 +55,14 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.realm.Realm;
 
-public class MapRouteActivity extends FragmentActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback{
+import static android.R.attr.fillColor;
+import static android.R.attr.strokeColor;
+
+public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback{
 
     public static final int PERMISSION_LOCATION_REQUEST = 12;
+    public static final int SIGNATURE_REQUEST = 15;
+    public static String   ARG_SELECTION="selection";
 
      @BindView(R.id.button_finalize_route)
      Button mBtnStopRoute;
@@ -73,15 +81,18 @@ public class MapRouteActivity extends FragmentActivity implements OnMapReadyCall
     private boolean mLocationPermissionGranted=false;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private CheckPointLocation mCheckPointLocation;
-    private LocationManager             mLocationManager;
+    private LocationManager mLocationManager;
     private boolean mLocationSettingCalled=false;
+    private Circle mCircle;
+    private boolean mIsFinalize=false;
 
     /**
      * This method help us to get a single
      * map instance
      */
-    public static Intent getIntent(Context context){
+    public static Intent getIntent(Context context,String selection){
         Intent intent = new Intent(context,MapRouteActivity.class);
+        intent.putExtra(ARG_SELECTION,selection);
         return intent;
     }
 
@@ -91,6 +102,10 @@ public class MapRouteActivity extends FragmentActivity implements OnMapReadyCall
         setContentView(R.layout.activity_map_route);
 
         ButterKnife.bind(this);
+        if(getSupportActionBar() != null){
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setTitle(getIntent().getExtras().getString(ARG_SELECTION));
+        }
 
         //Here we get the location manager
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -102,12 +117,18 @@ public class MapRouteActivity extends FragmentActivity implements OnMapReadyCall
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        if (checkAndRequestPermissions()) {
+        /*if (checkAndRequestPermissions()) {
             if(isGpsEnable()){
                 startLocationService();
             }else{
                 showGpsDisableMessage();
             }
+        }*/
+
+        checkAndRequestPermissions();
+
+        if(!PreferenceManager.getInstance(this).isSeller()){
+            showNoAddressMessage();
         }
     }
 
@@ -169,6 +190,18 @@ public class MapRouteActivity extends FragmentActivity implements OnMapReadyCall
                     showRationale();
                 }
             }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode){
+            case SIGNATURE_REQUEST:
+                if(resultCode==RESULT_OK){
+                    showCheckInFinalizeMessage();
+                }
+                break;
         }
     }
 
@@ -237,10 +270,11 @@ public class MapRouteActivity extends FragmentActivity implements OnMapReadyCall
     @OnClick(R.id.button_check)
     public void checkUserLocation(){
         if(mIsChecking){
-            showCheckInFinalizeMessage();
+            //showCheckInFinalizeMessage();
+            startActivityForResult(SignatureActivity.getIntent(this,getIntent().getExtras().getString(ARG_SELECTION)),SIGNATURE_REQUEST);
         }else{
             mIsChecking = true;
-            mBtnCheck.setText(R.string.check_out);
+            mBtnCheck.setText(R.string.finalize);
             mLnlCheckProgress.setVisibility(View.VISIBLE);
             mChronometer.setBase(SystemClock.elapsedRealtime());
             mChronometer.start();
@@ -275,6 +309,16 @@ public class MapRouteActivity extends FragmentActivity implements OnMapReadyCall
         Log.d("LOCATION LON:" , String.valueOf(newLocationEvent.getLon()));
 
         if (mMap != null) {
+            if(mCircle!=null){
+                mCircle.remove();
+            }
+            CircleOptions circleOptions = new CircleOptions();
+            circleOptions.center(new LatLng(newLocationEvent.getLat(),newLocationEvent.getLon()));
+            circleOptions.radius(100);
+            circleOptions.fillColor(R.color.colorBlackTransparent);
+            circleOptions.strokeColor(R.color.colorBlue);
+            circleOptions.strokeWidth(4.0f);
+            mCircle = mMap.addCircle(circleOptions);
             mMap.addMarker(
                     new MarkerOptions()
                             .position(new LatLng(newLocationEvent.getLat(), newLocationEvent.getLon()))
@@ -313,6 +357,8 @@ public class MapRouteActivity extends FragmentActivity implements OnMapReadyCall
                                     mCheckPointLocation.setCheckOutLongitude(location.getLongitude());
                                     mCheckPointLocation.setCheckOutDate(Utility.getCurrentDate());
                                     saveCheckPointLocation();
+                                    startActivity(HistoryActivity.getIntent(getApplicationContext()));
+                                    finish();
                                 }
                             }else{
                                 Toast.makeText(getApplicationContext(),R.string.no_user_location_available,Toast.LENGTH_LONG).show();
@@ -451,6 +497,22 @@ public class MapRouteActivity extends FragmentActivity implements OnMapReadyCall
         mLnlCheckProgress.setVisibility(View.GONE);
         mChronometer.stop();
         getUserLocation();
-        startLocationService();
+    }
+
+    /**
+     * This method show a message explaining
+     * that the selected account doesnt have
+     * a location in the data base
+     */
+    public void showNoAddressMessage(){
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.no_address_title)
+                .setMessage(R.string.no_address_description)
+                .setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                       dialogInterface.dismiss();
+                    }
+                }).setCancelable(false).show();
     }
 }
