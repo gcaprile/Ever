@@ -17,6 +17,7 @@ import com.app.checkinmap.R;
 import com.app.checkinmap.db.DatabaseManager;
 import com.app.checkinmap.model.UserLocation;
 import com.app.checkinmap.ui.adapter.HistoryAdapterList;
+import com.app.checkinmap.util.PreferenceManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -29,6 +30,9 @@ public class HistoryActivity extends AppCompatActivity {
 
     @BindView(R.id.rvHistory)
     RecyclerView mRv;
+
+    @BindView(R.id.text_view_title_screen)
+    TextView mTxvTitle;
 
     @BindView(R.id.text_view_distance)
     TextView mTvDistance;
@@ -58,11 +62,19 @@ public class HistoryActivity extends AppCompatActivity {
 
         if(getSupportActionBar() != null){
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(R.string.completed_route);
+            if(PreferenceManager.getInstance(this).isSeller()){
+                getSupportActionBar().setTitle(R.string.completed_route);
+                mTxvTitle.setText(R.string.route_complete_information);
+            }else{
+                getSupportActionBar().setTitle(R.string.completed_order);
+                mTxvTitle.setText(R.string.work_order_complete);
+            }
+
         }
 
 
         /*Here we set the route data*/
+
         mTvDistance.setText(getRoutDistance());
         mTvUsedTime.setText(getRouteTime());
         mTvVisitNumber.setText(String.valueOf(DatabaseManager.getInstance().getCheckPointLocationList().size()));

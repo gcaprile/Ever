@@ -88,7 +88,11 @@ public class MyAccountsActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemClick(String selection) {
                                         if(PreferenceManager.getInstance(getApplicationContext()).isInRoute()){
-                                            startActivity(MapRouteActivity.getIntent(getApplicationContext(),selection));
+                                            if(PreferenceManager.getInstance(getApplicationContext()).isSeller()){
+                                                startActivity(AccountDetailActivity.getIntent(getApplicationContext(),selection));
+                                            }else{
+                                                startActivity(MapRouteActivity.getIntent(getApplicationContext(),selection));
+                                            }
                                             finish();
                                         }else{
                                             Toast.makeText(getApplicationContext(),R.string.you_should_start_the_route,Toast.LENGTH_LONG).show();

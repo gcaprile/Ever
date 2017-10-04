@@ -48,10 +48,12 @@
     <string name="used_time">Tiempo completado:</string>
     <string name="visit_number">Número de visitas:</string>
     <string name="route_complete_information">Información de ruta completada</string>
+    <string name="work_order_complete">Información de orden de trabajo completada</string>
     <string name="check_in_finalize">Esta a punto de finalizar el check in, volverá a estar en ruta</string>
     <string name="lorem_ipsum">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s</string>
     <string name="lorem_ipsum_title">Lorem Ipsum is simply dummy text.</string>
     <string name="completed_route">Ruta completada</string>
+    <string name="completed_order">Orden de trabajo completada</string>
     <string name="check_rol_explanation">Para cambiar de rol debe finalizar la ruta</string>
 
 
@@ -73,4 +75,6 @@
     <string name="finalize">Finalizar</string>
     <string name="in_process">En proceso</string>
     <string name="electronic_signature">Firma electrónica</string>
+    <string name="address_detail">Detalle de la dirección</string>
+    <string name="select_an_address">Seleccione una dirección para continuar</string>
 </resources>

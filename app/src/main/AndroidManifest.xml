@@ -38,7 +38,7 @@
         <activity
             android:name=".ui.activity.MainActivity"
             android:label="@string/title_activity_check_in_map"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.activity.SplashScreenActivity"
             android:screenOrientation="portrait"
@@ -71,7 +71,8 @@
         <activity
             android:name=".ui.activity.MyInformationActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".ui.activity.SignatureActivity"></activity>
+        <activity android:name=".ui.activity.SignatureActivity" />
+        <activity android:name=".ui.activity.AccountDetailActivity"></activity>
     </application>
 
 </manifest>

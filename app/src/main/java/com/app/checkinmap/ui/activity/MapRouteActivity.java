@@ -153,7 +153,7 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stopLocationService();
+       // stopLocationService();
     }
 
     /**
@@ -186,6 +186,7 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                     startLocationService();
+                    PreferenceManager.getInstance(this).setIsInRoute(true);
                 } else {
                     showRationale();
                 }
@@ -225,6 +226,7 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
     public void finalizeRoute(){
         if(!mIsChecking){
             stopLocationService();
+            PreferenceManager.getInstance(this).setIsInRoute(false);
             startActivity(HistoryActivity.getIntent(this));
             finish();
         }else{
@@ -251,7 +253,18 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
         }
         /*Her we make zoom in the last saved location*/
         if(locations.size()>0){
+            if(mCircle!=null){
+                mCircle.remove();
+            }
             UserLocation lastLocation = locations.get(locations.size()-1);
+            CircleOptions circleOptions = new CircleOptions();
+            circleOptions.center(new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude()));
+            circleOptions.radius(100);
+            circleOptions.fillColor(R.color.colorBlackTransparent);
+            circleOptions.strokeColor(R.color.colorBlue);
+            circleOptions.strokeWidth(4.0f);
+            mCircle = mMap.addCircle(circleOptions);
+
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                     new LatLng(lastLocation.getLatitude(),
                             lastLocation.getLongitude()), 15));
@@ -270,8 +283,11 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
     @OnClick(R.id.button_check)
     public void checkUserLocation(){
         if(mIsChecking){
-            //showCheckInFinalizeMessage();
-            startActivityForResult(SignatureActivity.getIntent(this,getIntent().getExtras().getString(ARG_SELECTION)),SIGNATURE_REQUEST);
+            if(PreferenceManager.getInstance(this).isSeller()){
+                showCheckInFinalizeMessage();
+            }else{
+                startActivityForResult(SignatureActivity.getIntent(this,getIntent().getExtras().getString(ARG_SELECTION)),SIGNATURE_REQUEST);
+            }
         }else{
             mIsChecking = true;
             mBtnCheck.setText(R.string.finalize);
@@ -280,6 +296,7 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
             mChronometer.start();
             getUserLocation();
             stopLocationService();
+            PreferenceManager.getInstance(this).setIsInRoute(false);
         }
     }
 
@@ -358,6 +375,7 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
                                     mCheckPointLocation.setCheckOutDate(Utility.getCurrentDate());
                                     saveCheckPointLocation();
                                     startActivity(HistoryActivity.getIntent(getApplicationContext()));
+                                    startLocationService();
                                     finish();
                                 }
                             }else{

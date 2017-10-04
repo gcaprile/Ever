@@ -5,10 +5,21 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.app.checkinmap.R;
+import com.app.checkinmap.util.Utility;
+import com.salesforce.androidsdk.rest.RestClient;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class MyInformationActivity extends AppCompatActivity {
+    @BindView(R.id.text_view_user_name)
+    TextView mTxvUserName;
+
+    @BindView(R.id.text_view_email)
+    TextView mTxvEmail;
 
     /**
      * This method help us to get a single
@@ -24,10 +35,17 @@ public class MyInformationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_information);
 
+        ButterKnife.bind(this);
+
         if(getSupportActionBar() != null){
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle(R.string.my_information);
         }
+
+        RestClient.ClientInfo ci = Utility.getRestClient().getClientInfo();
+        mTxvUserName.setText(ci.displayName);
+        mTxvEmail.setText(ci.email);
+
     }
 
     @Override
