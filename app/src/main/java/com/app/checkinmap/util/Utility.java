@@ -16,6 +16,15 @@ import java.util.Date;
 public class Utility {
     public static final String TAG="emasal";
     private static RestClient  mRestClient;
+    private static String      mUserProfileId;
+    private static Roles       mUserRole;
+    private static String      mUserProfileName;
+
+    public enum Roles{
+        SELLER,
+        TECHNICAL,
+        OTHER
+    }
 
     /**
      * This method help us to get the current
@@ -40,6 +49,61 @@ public class Utility {
     public static RestClient getRestClient(){
         return mRestClient;
     }
+
+
+    /**
+     * This method set the user profile id like a global variable
+     */
+    public static void setUserProfileId(String userProfileId){
+        mUserProfileId = userProfileId;
+        /*Here we check if the user is a seller*/
+        switch (userProfileId){
+            case "00e6A000000IRoOQAW":
+                setUserRole(Roles.SELLER);
+                break;
+            case "00e6A000000IRoEQAW":
+                setUserRole(Roles.TECHNICAL);
+                break;
+            default:
+                setUserRole(Roles.OTHER);
+                break;
+        }
+    }
+
+    /**
+     * This method get the user profile id like
+     */
+    public static String getUserProfileId(){
+        return mUserProfileId ;
+    }
+
+    /**
+     * This method set the user type*/
+    public static void setUserRole(Roles userRole){
+        mUserRole = userRole;
+    }
+
+    /**
+     * This method get the user type
+     */
+    public static Roles getUserRole(){
+        return mUserRole ;
+    }
+
+
+    /**
+     * This method get the user profile name
+     */
+    public static String getUserProfileName(){
+        return mUserProfileName ;
+    }
+
+    /**
+     * This method set the user profile name*/
+    public static void setUserProfileName(String userProfileName){
+        mUserProfileName = userProfileName;
+    }
+
 
     /**
      * This method help us to

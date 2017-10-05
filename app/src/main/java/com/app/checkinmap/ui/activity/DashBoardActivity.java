@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,11 +54,11 @@ public class DashBoardActivity extends AppCompatActivity
     @BindView(R.id.nav_view)
     NavigationView mNavigationView;
 
-    @BindView(R.id.text_view_connection_type)
-    TextView mTxvConnectionType;
-
     @BindView(R.id.button_start_rout)
     TextView mTxvRouteButton;
+
+    @BindView(R.id.image_view_dashboard_logo)
+    ImageView mImgLogoDashboard;
 
     private boolean mIsSeller=true;
     private boolean mLocationSettingCalled=false;
@@ -102,9 +103,12 @@ public class DashBoardActivity extends AppCompatActivity
 
         TextView mTxvEmail= (TextView) mNavigationView.getHeaderView(0).findViewById(R.id.text_view_email) ;
 
+        TextView mTxvProfileName= (TextView) mNavigationView.getHeaderView(0).findViewById(R.id.text_view_profile_name) ;
+
         RestClient.ClientInfo ci = Utility.getRestClient().getClientInfo();
         mTxvAccountName.setText(ci.displayName);
         mTxvEmail.setText(ci.email);
+        mTxvProfileName.setText(Utility.getUserProfileName());
 
         if(isInRoute()){
             mTxvRouteButton.setText(R.string.finalize_route);
@@ -230,19 +234,14 @@ public class DashBoardActivity extends AppCompatActivity
      * the ui using role
      */
     public void updateUi(){
-        if(!PreferenceManager.getInstance(this).isInRoute()){
-            PreferenceManager.getInstance(this).setIsSeller(mIsSeller);
-            if(mIsSeller){
-                mTxvConnectionType.setText(R.string.connected_like_sales_person);
-                mNavigationView.getMenu().findItem(R.id.nav_my_orders).setVisible(false);
+        switch (Utility.getUserRole()){
+            case SELLER:
                 mNavigationView.getMenu().findItem(R.id.nav_my_accounts).setVisible(true);
-            }else{
-                mTxvConnectionType.setText(R.string.connected_like_technical);
+                mNavigationView.getMenu().findItem(R.id.nav_candidates).setVisible(true);
+                break;
+            case TECHNICAL:
                 mNavigationView.getMenu().findItem(R.id.nav_my_orders).setVisible(true);
-                mNavigationView.getMenu().findItem(R.id.nav_my_accounts).setVisible(false);
-            }
-        }else{
-            Toast.makeText(this,R.string.check_rol_explanation,Toast.LENGTH_LONG).show();
+                break;
         }
     }
 

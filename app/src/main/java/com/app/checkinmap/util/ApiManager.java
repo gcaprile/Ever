@@ -1,6 +1,8 @@
 package com.app.checkinmap.util;
 
+import android.app.Activity;
 import android.content.Context;
+import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
 import com.app.checkinmap.ui.activity.MainActivity;
@@ -45,6 +47,8 @@ public class ApiManager {
      * This method help us to get a single JSONObject
      */
     public void getJSONObject(final Context context, String sql, final OnObjectListener listener ){
+
+
         RestRequest restRequest = null;
         try {
             restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(context), sql);
@@ -56,20 +60,30 @@ public class ApiManager {
             @Override
             public void onSuccess(RestRequest request, final RestResponse result) {
                 result.consumeQuietly(); // consume before going back to main thread
-                try {
-                    listener.onObject(true,result.asJSONObject(),null);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    listener.onObject(false,null,e.getMessage());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    listener.onObject(false,null,e.getMessage());
-                }
+                ((Activity)context).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            listener.onObject(true,result.asJSONObject(),null);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            listener.onObject(false,null,e.getMessage());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            listener.onObject(false,null,e.getMessage());
+                        }
+                    }
+                });
             }
 
             @Override
             public void onError(final Exception exception) {
-                listener.onObject(false,null,exception.toString());
+                ((Activity)context).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.onObject(false,null,exception.toString());
+                    }
+                });
             }
         });
     }

@@ -10,6 +10,7 @@
     tools:showIn="@layout/app_bar_main">
 
     <ImageView
+        android:id="@+id/image_view_dashboard_logo"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -36,16 +37,5 @@
             android:textColor="@color/colorText" />
 
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/text_view_connection_type"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/colorGray"
-        android:gravity="center|left"
-        android:minHeight="50dp"
-        android:paddingStart="20dp"
-        android:text="@string/connected_like_sales_person"
-        android:textColor="@color/colorText" />
 
 </LinearLayout>
