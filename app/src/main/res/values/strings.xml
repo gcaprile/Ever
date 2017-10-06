@@ -21,7 +21,7 @@
     <!-- MAP ACTIVITY STRINGS-->
     <string name="title_activity_check_in_map">Emasal</string>
     <string name="location_permission_rationale">La aplicación debe acceder a la ubicación del dispositivo para poder
-    realizar tareas de check in y check out</string>
+    realizar tareas de check in y check out, tambien debe poder escribir en memoria externa para guardar las firmas electrónicas</string>
     <string name="check_in">Check in</string>
     <string name="check_out">Check out</string>
     <string name="checking_is_in_progress">Check in en progreso</string>
@@ -72,7 +72,7 @@
     <string name="my_work_orders">Mis ordenes de trabajo</string>
     <string name="account_description">Descripción de la cuenta</string>
     <string name="work_order_description">Descripción de la orden de trabajo</string>
-    <string name="you_should_start_the_route">Debes iniciar la ruta antes de realizar esta acción</string>
+    <string name="you_should_start_the_route">Debe iniciar la ruta antes de realizar esta acción</string>
     <string name="no_address_title">Sin dirección</string>
     <string name="no_address_description">Este cliente no tiene dirección registrada en el sistema. Se registrará una nueva dirección con su ubicación actual</string>
     <string name="finalize">Finalizar</string>
@@ -80,4 +80,6 @@
     <string name="electronic_signature">Firma electrónica</string>
     <string name="address_detail">Detalle de la dirección</string>
     <string name="select_an_address">Seleccione una dirección para continuar</string>
+    <string name="no_address_to_show">No existen direcciones para mostrar</string>
+    <string name="select_visit_type">Seleccione el tipo de visita</string>
 </resources>

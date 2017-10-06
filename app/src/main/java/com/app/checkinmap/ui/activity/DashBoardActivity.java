@@ -23,16 +23,28 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.app.checkinmap.R;
+import com.app.checkinmap.bus.BusProvider;
+import com.app.checkinmap.bus.NewLocationEvent;
 import com.app.checkinmap.service.LocationService;
 import com.app.checkinmap.util.PreferenceManager;
 import com.app.checkinmap.util.Utility;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.salesforce.androidsdk.app.SalesforceSDKManager;
 import com.salesforce.androidsdk.rest.RestClient;
+import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +56,7 @@ import butterknife.OnClick;
 import static com.app.checkinmap.ui.activity.MapRouteActivity.PERMISSION_LOCATION_REQUEST;
 
 public class DashBoardActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements OnMapReadyCallback,NavigationView.OnNavigationItemSelectedListener {
     @BindView(R.id.toolbar)
     Toolbar mToolBar;
 
@@ -57,12 +69,10 @@ public class DashBoardActivity extends AppCompatActivity
     @BindView(R.id.button_start_rout)
     TextView mTxvRouteButton;
 
-    @BindView(R.id.image_view_dashboard_logo)
-    ImageView mImgLogoDashboard;
 
-    private boolean mIsSeller=true;
     private boolean mLocationSettingCalled=false;
     private LocationManager mLocationManager;
+    private GoogleMap       mMap;
 
     /**
      * This method help us to get a single intent
@@ -83,6 +93,37 @@ public class DashBoardActivity extends AppCompatActivity
         //Here we get the location manager
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
+        /*Here we get initialize the map*/
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+        //Here we initialize the toolbar an main menu
+        initToolbarAndMenu();
+
+        //Her we update the user data
+        setUserDataInMenu();
+
+        /*Here we check the permission*/
+        if(checkAndRequestPermissions()){
+            if(isGpsEnable()){
+                startLocationService();
+            }else{
+                showGpsDisableMessage();
+            }
+        }
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+    }
+
+    /**
+     * This method initialize the main menu and
+     * the tool bar
+     */
+    public void initToolbarAndMenu(){
         mToolBar.setTitle(R.string.emasal);
         setSupportActionBar(mToolBar);
 
@@ -93,23 +134,27 @@ public class DashBoardActivity extends AppCompatActivity
         toggle.syncState();
 
         mNavigationView.setNavigationItemSelectedListener(this);
-
-        setUserData();
     }
 
-    public void setUserData(){
+
+    /**
+     * This method help us to load the user data in the
+     * lateral main menu
+     */
+    public void setUserDataInMenu(){
         /*Here we set the user data*/
-        TextView mTxvAccountName = (TextView)mNavigationView.getHeaderView(0).findViewById(R.id.text_view_account_name) ;
+        TextView mTxvAccountName = mNavigationView.getHeaderView(0).findViewById(R.id.text_view_account_name) ;
 
-        TextView mTxvEmail= (TextView) mNavigationView.getHeaderView(0).findViewById(R.id.text_view_email) ;
+        TextView mTxvEmail=  mNavigationView.getHeaderView(0).findViewById(R.id.text_view_email) ;
 
-        TextView mTxvProfileName= (TextView) mNavigationView.getHeaderView(0).findViewById(R.id.text_view_profile_name) ;
+        TextView mTxvProfileName= mNavigationView.getHeaderView(0).findViewById(R.id.text_view_profile_name) ;
 
         RestClient.ClientInfo ci = Utility.getRestClient().getClientInfo();
         mTxvAccountName.setText(ci.displayName);
         mTxvEmail.setText(ci.email);
         mTxvProfileName.setText(Utility.getUserProfileName());
 
+        /*Here we check if we are in route*/
         if(isInRoute()){
             mTxvRouteButton.setText(R.string.finalize_route);
             mTxvRouteButton.setBackgroundColor(getResources().getColor(R.color.colorRed));
@@ -117,12 +162,26 @@ public class DashBoardActivity extends AppCompatActivity
             mTxvRouteButton.setText(R.string.start_route);
             mTxvRouteButton.setBackgroundColor(getResources().getColor(R.color.colorBlue));
         }
-        updateUi();
+
+        /*Here we show or hide the menu options*/
+        switch (Utility.getUserRole()){
+            case SELLER:
+                mNavigationView.getMenu().findItem(R.id.nav_my_accounts).setVisible(true);
+                mNavigationView.getMenu().findItem(R.id.nav_candidates).setVisible(true);
+                break;
+            case TECHNICAL:
+                mNavigationView.getMenu().findItem(R.id.nav_my_orders).setVisible(true);
+                break;
+            default:
+                mTxvRouteButton.setVisibility(View.GONE);
+                break;
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        BusProvider.getInstance().register(this);
         if(mLocationSettingCalled){
             mLocationSettingCalled=false;
             if(isGpsEnable()){
@@ -134,14 +193,28 @@ public class DashBoardActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        BusProvider.getInstance().unregister(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(!isInRoute()){
+            stopLocationService();
+        }
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         switch (requestCode) {
             case PERMISSION_LOCATION_REQUEST: {
                 if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                        && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                    startRoute();
                 } else {
                     showRationale();
@@ -150,29 +223,6 @@ public class DashBoardActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle item selection
-        switch (item.getItemId()) {
-            case R.id.action_seller:
-               mIsSeller=true;
-                updateUi();
-                return true;
-            case R.id.action_technical:
-                mIsSeller=false;
-                updateUi();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
 
     @Override
     public void onBackPressed() {
@@ -209,7 +259,6 @@ public class DashBoardActivity extends AppCompatActivity
 
     @OnClick(R.id.button_start_rout)
     public void startRoute(){
-        //startActivity(MapRouteActivity.getIntent(this));
        if(isInRoute()){
            stopLocationService();
            mTxvRouteButton.setText(R.string.start_route);
@@ -229,28 +278,21 @@ public class DashBoardActivity extends AppCompatActivity
        }
     }
 
-    /**
-     * This method help us to update
-     * the ui using role
-     */
-    public void updateUi(){
-        switch (Utility.getUserRole()){
-            case SELLER:
-                mNavigationView.getMenu().findItem(R.id.nav_my_accounts).setVisible(true);
-                mNavigationView.getMenu().findItem(R.id.nav_candidates).setVisible(true);
-                break;
-            case TECHNICAL:
-                mNavigationView.getMenu().findItem(R.id.nav_my_orders).setVisible(true);
-                break;
-        }
-    }
 
+    /**
+     * This method check if the app has all the
+     * permissions needed
+     */
     private  boolean checkAndRequestPermissions() {
         int locationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
-        //int storagePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int storagePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         List<String> listPermissionsNeeded = new ArrayList<>();
         if (locationPermission != PackageManager.PERMISSION_GRANTED) {
             listPermissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+
+        if (storagePermission != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         }
 
         if (!listPermissionsNeeded.isEmpty()) {
@@ -293,6 +335,11 @@ public class DashBoardActivity extends AppCompatActivity
         stopService(new Intent(this, LocationService.class));
     }
 
+
+    /**
+     * This method check if the user is in route
+     * mode
+     */
     private boolean isInRoute(){
         return PreferenceManager.getInstance(this).isInRoute();
     }
@@ -337,4 +384,31 @@ public class DashBoardActivity extends AppCompatActivity
             }
         }).setCancelable(false).show();
     }
+
+    @Subscribe
+    public void getNewLocation(NewLocationEvent newLocationEvent){
+        Log.d("LOCATION LAT:" , String.valueOf(newLocationEvent.getLat()));
+        Log.d("LOCATION LON:" , String.valueOf(newLocationEvent.getLon()));
+
+        if (mMap != null) {
+
+            /*Here we clean the old marker*/
+            mMap.clear();
+
+            /*Here we add the new one*/
+            mMap.addMarker(
+                    new MarkerOptions()
+                            .position(new LatLng(newLocationEvent.getLat(), newLocationEvent.getLon()))
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(newLocationEvent.getLat(),
+                            newLocationEvent.getLon()), 17));
+
+            if(!mTxvRouteButton.isShown()){
+                mTxvRouteButton.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
 }

@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.app.checkinmap.R;
+import com.app.checkinmap.model.Account;
 import com.app.checkinmap.model.Record;
 import com.app.checkinmap.model.UserLocation;
 import com.app.checkinmap.util.PreferenceManager;
@@ -22,16 +23,16 @@ import butterknife.ButterKnife;
 
 public class AccountAdapterList extends RecyclerView.Adapter<AccountAdapterList.AccountViewHolder>{
 
-    private List<Record> mRecordList;
+    private List<Account> mAccountList;
     private Context mContext;
     private OnItemClickListener mListener;
 
     public interface OnItemClickListener{
-        void onItemClick(String selection);
+        void onItemClick(Account account);
     }
 
-    public AccountAdapterList(Context context,List<Record> recordList){
-        mRecordList = recordList;
+    public AccountAdapterList(Context context,List<Account> accountList){
+        mAccountList = accountList;
         mContext= context;
     }
 
@@ -48,18 +49,13 @@ public class AccountAdapterList extends RecyclerView.Adapter<AccountAdapterList.
 
     @Override
     public void onBindViewHolder(AccountViewHolder holder, int position) {
-        if(PreferenceManager.getInstance(mContext).isSeller()){
-            holder.tvTitle.setText(mRecordList.get(position).getName());
-            holder.tvDescription.setText(R.string.account_description);
-        }else{
-            holder.tvTitle.setText("Orden de trabajo "+mRecordList.get(position).getName());
-            holder.tvDescription.setText(R.string.work_order_description);
-        }
+        holder.tvTitle.setText(mAccountList.get(position).getName());
+        holder.tvDescription.setText(mAccountList.get(position).getAddress());
     }
 
     @Override
     public int getItemCount() {
-        return mRecordList.size();
+        return mAccountList.size();
     }
 
 
@@ -81,7 +77,7 @@ public class AccountAdapterList extends RecyclerView.Adapter<AccountAdapterList.
         @Override
         public void onClick(View view) {
             if(mListener!=null){
-                mListener.onItemClick(tvTitle.getText().toString());
+                mListener.onItemClick(mAccountList.get(getAdapterPosition()));
             }
         }
     }

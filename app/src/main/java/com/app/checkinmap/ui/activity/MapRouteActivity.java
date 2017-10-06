@@ -18,6 +18,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.LinearLayout;
@@ -27,6 +28,8 @@ import com.app.checkinmap.R;
 import com.app.checkinmap.bus.BusProvider;
 import com.app.checkinmap.bus.NewLocationEvent;
 import com.app.checkinmap.db.DatabaseManager;
+import com.app.checkinmap.model.Account;
+import com.app.checkinmap.model.AccountAddress;
 import com.app.checkinmap.model.CheckPointLocation;
 import com.app.checkinmap.model.UserLocation;
 import com.app.checkinmap.service.LocationService;
@@ -63,6 +66,7 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
     public static final int PERMISSION_LOCATION_REQUEST = 12;
     public static final int SIGNATURE_REQUEST = 15;
     public static String   ARG_SELECTION="selection";
+    public static String   ARG_NAME="name";
 
      @BindView(R.id.button_finalize_route)
      Button mBtnStopRoute;
@@ -76,23 +80,26 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
     @BindView(R.id.chronometer_view)
     Chronometer mChronometer;
 
-    private GoogleMap mMap;
-    private boolean mIsChecking=false;
-    private boolean mLocationPermissionGranted=false;
+    private GoogleMap                   mMap;
+    private boolean                     mIsChecking=false;
+    private boolean                     mLocationPermissionGranted=false;
     private FusedLocationProviderClient mFusedLocationProviderClient;
-    private CheckPointLocation mCheckPointLocation;
-    private LocationManager mLocationManager;
-    private boolean mLocationSettingCalled=false;
-    private Circle mCircle;
-    private boolean mIsFinalize=false;
+    private CheckPointLocation          mCheckPointLocation;
+    private LocationManager             mLocationManager;
+    private boolean                     mLocationSettingCalled=false;
+    private Circle                      mCircle;
+    private boolean                     mIsFinalize=false;
+    private AccountAddress              mAccountAddress;
+    private String                      mVisitType;
 
     /**
      * This method help us to get a single
      * map instance
      */
-    public static Intent getIntent(Context context,String selection){
+    public static Intent getIntent(Context context,String name,AccountAddress account){
         Intent intent = new Intent(context,MapRouteActivity.class);
-        intent.putExtra(ARG_SELECTION,selection);
+        intent.putExtra(ARG_NAME,name);
+        intent.putExtra(ARG_SELECTION,account);
         return intent;
     }
 
@@ -102,9 +109,13 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
         setContentView(R.layout.activity_map_route);
 
         ButterKnife.bind(this);
+
+        /*Here we get the account address */
+        mAccountAddress = getIntent().getExtras().getParcelable(ARG_SELECTION);
+
         if(getSupportActionBar() != null){
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-            getSupportActionBar().setTitle(getIntent().getExtras().getString(ARG_SELECTION));
+            getSupportActionBar().setTitle(getIntent().getExtras().getString(ARG_NAME));
         }
 
         //Here we get the location manager
@@ -117,19 +128,9 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        /*if (checkAndRequestPermissions()) {
-            if(isGpsEnable()){
-                startLocationService();
-            }else{
-                showGpsDisableMessage();
-            }
-        }*/
-
+        /*Here we check if we have the permissions*/
         checkAndRequestPermissions();
 
-        if(!PreferenceManager.getInstance(this).isSeller()){
-            showNoAddressMessage();
-        }
     }
 
 
@@ -145,16 +146,8 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        showSavedLocationOnMap();
     }
 
-
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-       // stopLocationService();
-    }
 
     /**
      * This method help us to check if
@@ -289,14 +282,7 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
                 startActivityForResult(SignatureActivity.getIntent(this,getIntent().getExtras().getString(ARG_SELECTION)),SIGNATURE_REQUEST);
             }
         }else{
-            mIsChecking = true;
-            mBtnCheck.setText(R.string.finalize);
-            mLnlCheckProgress.setVisibility(View.VISIBLE);
-            mChronometer.setBase(SystemClock.elapsedRealtime());
-            mChronometer.start();
-            getUserLocation();
-            stopLocationService();
-            PreferenceManager.getInstance(this).setIsInRoute(false);
+           showVisitTypeMessage();
         }
     }
 
@@ -326,9 +312,15 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
         Log.d("LOCATION LON:" , String.valueOf(newLocationEvent.getLon()));
 
         if (mMap != null) {
+            /*Here we clean the map*/
+            mMap.clear();
+
+            /*Here we remove the accuracy circle*/
             if(mCircle!=null){
                 mCircle.remove();
             }
+
+            /*here we add the accuracy circle with new user location*/
             CircleOptions circleOptions = new CircleOptions();
             circleOptions.center(new LatLng(newLocationEvent.getLat(),newLocationEvent.getLon()));
             circleOptions.radius(100);
@@ -336,10 +328,21 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
             circleOptions.strokeColor(R.color.colorBlue);
             circleOptions.strokeWidth(4.0f);
             mCircle = mMap.addCircle(circleOptions);
+
+            /*Here we update the user location in the map*/
             mMap.addMarker(
                     new MarkerOptions()
                             .position(new LatLng(newLocationEvent.getLat(), newLocationEvent.getLon()))
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+
+            /*Here we update the address location*/
+            if(mAccountAddress.getLatitude()!=0 && mAccountAddress.getLongitude()!=0){
+                mMap.addMarker(
+                        new MarkerOptions()
+                                .position(new LatLng(mAccountAddress.getLatitude(), mAccountAddress.getLongitude()))
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
+            }
+
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(newLocationEvent.getLat(), newLocationEvent.getLon()), 17));
         }
     }
@@ -532,5 +535,50 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
                        dialogInterface.dismiss();
                     }
                 }).setCancelable(false).show();
+    }
+
+    /**
+     * This method show a dialog with all the
+     * visit type for the check in
+     */
+    public void showVisitTypeMessage(){
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(this);
+        builderSingle.setIcon(R.mipmap.ic_launcher);
+        builderSingle.setTitle(R.string.select_visit_type);
+
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_singlechoice);
+        arrayAdapter.add("Seguimiento");
+        arrayAdapter.add("Prospecto");
+        arrayAdapter.add("Cobro");
+        arrayAdapter.add("Mensajería");
+        arrayAdapter.add("Entrega");
+        arrayAdapter.add("Supervisión");
+        arrayAdapter.add("Oficina");
+        arrayAdapter.add("Transporte");
+        arrayAdapter.add("Demostración");
+
+        builderSingle.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                mVisitType = arrayAdapter.getItem(which);
+
+                /*Here  we set the variables for the check in*/
+                mIsChecking = true;
+                mBtnCheck.setText(R.string.finalize);
+                mLnlCheckProgress.setVisibility(View.VISIBLE);
+                mChronometer.setBase(SystemClock.elapsedRealtime());
+                mChronometer.start();
+                getUserLocation();
+                stopLocationService();
+                PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(false);
+            }
+        });
+        builderSingle.show();
     }
 }

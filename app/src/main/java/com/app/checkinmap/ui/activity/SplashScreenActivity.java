@@ -38,6 +38,13 @@ public class SplashScreenActivity extends SalesforceActivity {
         findViewById(R.id.root).setVisibility(View.VISIBLE);
         Utility.setRestClient(client);
 
+        getUserProfileAndStar();
+    }
+
+    /**
+     * This method help us to get the user profile
+     */
+    public void getUserProfileAndStar(){
         RestClient.ClientInfo clientInfo = Utility.getRestClient().getClientInfo();
 
         String osql ="SELECT User.id, User.Email, User.FirstName, User.LastName, User.profile.id, User.profile.name, User.Username, " +
@@ -47,7 +54,7 @@ public class SplashScreenActivity extends SalesforceActivity {
             @Override
             public void onObject(boolean success, JSONObject jsonObject, String errorMessage) {
                 if(success){
-                    //Utility.logLargeString(jsonObject.toString());
+                    Utility.logLargeString(jsonObject.toString());
                     try {
                         Utility.setUserProfileId(jsonObject.getJSONArray("records").getJSONObject(0).getJSONObject("Profile").getString("Id"));
                         Utility.setUserProfileName(jsonObject.getJSONArray("records").getJSONObject(0).getJSONObject("Profile").getString("Name"));

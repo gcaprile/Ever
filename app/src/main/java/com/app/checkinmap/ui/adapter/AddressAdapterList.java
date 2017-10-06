@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.app.checkinmap.R;
+import com.app.checkinmap.model.AccountAddress;
 import com.app.checkinmap.model.Record;
 import com.app.checkinmap.util.PreferenceManager;
 
@@ -19,13 +20,15 @@ import butterknife.ButterKnife;
 
 public class AddressAdapterList extends RecyclerView.Adapter<AddressAdapterList.AddressViewHolder>{
 
+    private List<AccountAddress> mAccountAddressList;
     private OnItemClickListener mListener;
 
     public interface OnItemClickListener{
-        void onItemClick(String selection);
+        void onItemClick(AccountAddress accountAddress);
     }
 
-    public AddressAdapterList(){
+    public AddressAdapterList(List<AccountAddress> accountAdressList){
+        mAccountAddressList = accountAdressList;
     }
 
     public void setOnItemClickListener(OnItemClickListener listener){
@@ -41,13 +44,13 @@ public class AddressAdapterList extends RecyclerView.Adapter<AddressAdapterList.
 
     @Override
     public void onBindViewHolder(AddressViewHolder holder, int position) {
-        holder.tvTitle.setText("Dirección "+(position+1));
+        holder.tvTitle.setText(mAccountAddressList.get(position).getName());
         holder.tvDescription.setText(R.string.address_detail);
     }
 
     @Override
     public int getItemCount() {
-        return 10;
+        return mAccountAddressList.size();
     }
 
 
@@ -69,7 +72,7 @@ public class AddressAdapterList extends RecyclerView.Adapter<AddressAdapterList.
         @Override
         public void onClick(View view) {
             if(mListener!=null){
-                mListener.onItemClick(tvTitle.getText().toString());
+                mListener.onItemClick(mAccountAddressList.get(getAdapterPosition()));
             }
         }
     }

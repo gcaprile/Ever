@@ -18,6 +18,7 @@ import com.app.checkinmap.R;
 import com.app.checkinmap.bus.BusProvider;
 import com.app.checkinmap.bus.NewLocationEvent;
 import com.app.checkinmap.model.UserLocation;
+import com.app.checkinmap.util.PreferenceManager;
 import com.app.checkinmap.util.Utility;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -112,7 +113,9 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
     public void onLocationChanged(Location location) {
         mNewLocationEventBus.setLat(location.getLatitude());
         mNewLocationEventBus.setLon(location.getLongitude());
-        saveLocation(location);
+        if(PreferenceManager.getInstance(this).isInRoute()){
+            saveLocation(location);
+        }
         BusProvider.getInstance().post(mNewLocationEventBus);
     }
 
