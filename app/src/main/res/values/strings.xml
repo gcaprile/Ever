@@ -17,6 +17,7 @@
     <string name="start_route">Iniciar ruta</string>
     <string name="connected_like_sales_person">Conectado como vendedor</string>
     <string name="connected_like_technical">Conectado como técnico</string>
+    <string name="getting_your_location">Obteniendo su ubicación&#8230;</string>
 
     <!-- MAP ACTIVITY STRINGS-->
     <string name="title_activity_check_in_map">Emasal</string>
@@ -31,9 +32,10 @@
     <string name="latitude">Latitude:</string>
     <string name="lang">Longitud:</string>
     <string name="initial_time">00:00:00</string>
-    <string name="gps_disable_message">Su GPS se encuentra deshabilitado.¿Desea habilitarlo?</string>
+    <string name="gps_disable_message">Su GPS está apago. Debe encenderlo para acceder a su ubicación actual</string>
     <string name="cancel">Cancelar</string>
     <string name="go_to_settings">Ir a la configuración</string>
+    <string name="text_enable">Encender</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="action_settings">Settings</string>
     <string name="connection_failed_play_services_message">Algo salió mal tratando de conectar a Google Play Services</string>
@@ -82,4 +84,15 @@
     <string name="select_an_address">Seleccione una dirección para continuar</string>
     <string name="no_address_to_show">No existen direcciones para mostrar</string>
     <string name="select_visit_type">Seleccione el tipo de visita</string>
+
+    <string-array name="visit_type">
+        <item>Seguimiento</item>
+        <item>Prospecto</item>
+        <item>Cobro</item>
+        <item>Mensajería</item>
+        <item>Entrega</item>
+        <item>Oficina</item>
+        <item>Transporte</item>
+        <item>Demostración</item>
+    </string-array>
 </resources>

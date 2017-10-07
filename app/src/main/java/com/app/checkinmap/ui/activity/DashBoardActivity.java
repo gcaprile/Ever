@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
@@ -25,15 +26,21 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.bus.BusProvider;
 import com.app.checkinmap.bus.NewLocationEvent;
+import com.app.checkinmap.model.CheckPointLocation;
 import com.app.checkinmap.service.LocationService;
 import com.app.checkinmap.util.PreferenceManager;
 import com.app.checkinmap.util.Utility;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -42,6 +49,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.salesforce.androidsdk.app.SalesforceSDKManager;
 import com.salesforce.androidsdk.rest.RestClient;
 import com.squareup.otto.Subscribe;
@@ -69,10 +78,15 @@ public class DashBoardActivity extends AppCompatActivity
     @BindView(R.id.button_start_rout)
     TextView mTxvRouteButton;
 
+    @BindView(R.id.linear_layout_progress)
+    LinearLayout mLnlProgress;
 
-    private boolean mLocationSettingCalled=false;
-    private LocationManager mLocationManager;
-    private GoogleMap       mMap;
+
+    private boolean                     mLocationSettingCalled=false;
+    private LocationManager             mLocationManager;
+    private GoogleMap                   mMap;
+    private boolean                     mLocationPermissionGranted=false;
+    private FusedLocationProviderClient mFusedLocationProviderClient;
 
     /**
      * This method help us to get a single intent
@@ -93,6 +107,9 @@ public class DashBoardActivity extends AppCompatActivity
         //Here we get the location manager
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
+        // Construct a FusedLocationProviderClient.
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
         /*Here we get initialize the map*/
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -103,20 +120,21 @@ public class DashBoardActivity extends AppCompatActivity
 
         //Her we update the user data
         setUserDataInMenu();
-
-        /*Here we check the permission*/
-        if(checkAndRequestPermissions()){
-            if(isGpsEnable()){
-                startLocationService();
-            }else{
-                showGpsDisableMessage();
-            }
-        }
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        /*Here we check the permission*/
+        if(checkAndRequestPermissions()){
+            if(isGpsEnable()){
+                /*Here we request a explicit user location request*/
+                getUserLocation();
+            }else{
+                showGpsDisableMessage();
+            }
+        }
     }
 
     /**
@@ -151,7 +169,7 @@ public class DashBoardActivity extends AppCompatActivity
 
         RestClient.ClientInfo ci = Utility.getRestClient().getClientInfo();
         mTxvAccountName.setText(ci.displayName);
-        mTxvEmail.setText(ci.email);
+        mTxvEmail.setText(ci.username);
         mTxvProfileName.setText(Utility.getUserProfileName());
 
         /*Here we check if we are in route*/
@@ -185,7 +203,7 @@ public class DashBoardActivity extends AppCompatActivity
         if(mLocationSettingCalled){
             mLocationSettingCalled=false;
             if(isGpsEnable()){
-                startLocationService();
+                getUserLocation();
             }else{
                 showGpsDisableMessage();
             }
@@ -215,7 +233,8 @@ public class DashBoardActivity extends AppCompatActivity
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED
                         && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                   startRoute();
+                    mLocationPermissionGranted=true;
+                  getUserLocation();
                 } else {
                     showRationale();
                 }
@@ -297,8 +316,10 @@ public class DashBoardActivity extends AppCompatActivity
 
         if (!listPermissionsNeeded.isEmpty()) {
             ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]),PERMISSION_LOCATION_REQUEST);
+            mLocationPermissionGranted=false;
             return false;
         }
+        mLocationPermissionGranted=true;
         return true;
     }
 
@@ -307,16 +328,19 @@ public class DashBoardActivity extends AppCompatActivity
      * for the location permission
      */
     public void showRationale(){
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.app_name)
-                .setMessage(R.string.location_permission_rationale)
-                .setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
+        new MaterialDialog.Builder(this)
+                .title(R.string.app_name)
+                .content(R.string.location_permission_rationale)
+                .positiveColorRes(R.color.colorPrimary)
+                .positiveText(R.string.accept)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                         checkAndRequestPermissions();
                     }
-                }).setCancelable(false).show();
-
+                })
+                .cancelable(false)
+                .show();
     }
 
     /**
@@ -367,48 +391,92 @@ public class DashBoardActivity extends AppCompatActivity
      * to indicate the user have to enable the GPS
      */
     public void showGpsDisableMessage(){
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.app_name)
-                .setMessage(R.string.gps_disable_message)
-                .setPositiveButton(R.string.go_to_settings, new DialogInterface.OnClickListener() {
+
+        new MaterialDialog.Builder(this)
+                .title(R.string.app_name)
+                .content(R.string.gps_disable_message)
+                .positiveColorRes(R.color.colorPrimary)
+                .positiveText(R.string.text_enable)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                         mLocationSettingCalled=true;
                         openGpsSettings();
-                        dialogInterface.dismiss();
+                        dialog.dismiss();
                     }
-                }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.dismiss();
-            }
-        }).setCancelable(false).show();
+                })
+                .cancelable(false)
+                .show();
     }
+
 
     @Subscribe
     public void getNewLocation(NewLocationEvent newLocationEvent){
         Log.d("LOCATION LAT:" , String.valueOf(newLocationEvent.getLat()));
         Log.d("LOCATION LON:" , String.valueOf(newLocationEvent.getLon()));
 
-        if (mMap != null) {
+        updateUserLocation(newLocationEvent.getLat(),newLocationEvent.getLon());
+    }
 
-            /*Here we clean the old marker*/
-            mMap.clear();
-
-            /*Here we add the new one*/
-            mMap.addMarker(
-                    new MarkerOptions()
-                            .position(new LatLng(newLocationEvent.getLat(), newLocationEvent.getLon()))
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                    new LatLng(newLocationEvent.getLat(),
-                            newLocationEvent.getLon()), 17));
-
-            if(!mTxvRouteButton.isShown()){
-                mTxvRouteButton.setVisibility(View.VISIBLE);
+    /**
+     * This method make the location request
+     * in order to get the las device location
+     */
+    public void getUserLocation(){
+/*
+     * Get the best and most recent location of the device, which may be null in rare
+     * cases when a location is not available.
+     */
+        try {
+            if (mLocationPermissionGranted) {
+                Task locationResult = mFusedLocationProviderClient.getLastLocation();
+                locationResult.addOnCompleteListener(this, new OnCompleteListener() {
+                    @Override
+                    public void onComplete(@NonNull Task task) {
+                        if (task.isSuccessful()) {
+                            // Set the map's camera position to the current location of the device.
+                            Location location = (Location) task.getResult();
+                            if(location!=null){
+                                updateUserLocation(location.getLatitude(),location.getLongitude());
+                            }
+                            /*Here we start the location service*/
+                            startLocationService();
+                        }
+                    }
+                });
             }
+        } catch(SecurityException e)  {
+            Log.e("Exception: %s", e.getMessage());
         }
     }
+
+    /**
+     * This method help us to update the user location
+     */
+      public void updateUserLocation(double latitude, double longitude){
+          if (mMap != null) {
+
+            /*Here we clean the old marker*/
+              mMap.clear();
+
+            /*Here we add the new one*/
+              mMap.addMarker(
+                      new MarkerOptions()
+                              .position(new LatLng(latitude, longitude))
+                              .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+
+              mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                      new LatLng(latitude,
+                              longitude), 17));
+
+              if(mLnlProgress.isShown()){
+                  mLnlProgress.setVisibility(View.GONE);
+              }
+
+              if(!mTxvRouteButton.isShown()){
+                  mTxvRouteButton.setVisibility(View.VISIBLE);
+              }
+          }
+      }
 
 }

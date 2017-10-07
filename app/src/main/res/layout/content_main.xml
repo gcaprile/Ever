@@ -34,9 +34,34 @@
             android:minHeight="50dp"
             android:text="@string/start_route"
             android:textAllCaps="true"
-            android:visibility="gone"
-            android:textColor="@color/colorText" />
+            android:textColor="@color/colorText"
+            android:visibility="gone" />
 
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linear_layout_progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="2dp"
+        android:background="@color/colorPrimary"
+        android:orientation="vertical">
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-7dp"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/colorAccent" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:minHeight="50dp"
+            android:text="@string/getting_your_location"
+            android:textColor="@color/colorText" />
     </LinearLayout>
 
 </LinearLayout>

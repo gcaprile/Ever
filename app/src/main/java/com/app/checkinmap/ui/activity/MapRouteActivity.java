@@ -24,6 +24,7 @@ import android.widget.Chronometer;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.bus.BusProvider;
 import com.app.checkinmap.bus.NewLocationEvent;
@@ -542,43 +543,30 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
      * visit type for the check in
      */
     public void showVisitTypeMessage(){
-        AlertDialog.Builder builderSingle = new AlertDialog.Builder(this);
-        builderSingle.setIcon(R.mipmap.ic_launcher);
-        builderSingle.setTitle(R.string.select_visit_type);
 
-        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_singlechoice);
-        arrayAdapter.add("Seguimiento");
-        arrayAdapter.add("Prospecto");
-        arrayAdapter.add("Cobro");
-        arrayAdapter.add("Mensajería");
-        arrayAdapter.add("Entrega");
-        arrayAdapter.add("Supervisión");
-        arrayAdapter.add("Oficina");
-        arrayAdapter.add("Transporte");
-        arrayAdapter.add("Demostración");
+        new MaterialDialog.Builder(this)
+                .title(R.string.select_visit_type)
+                .items(R.array.visit_type)
+                .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
+                    @Override
+                    public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
 
-        builderSingle.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                mVisitType = arrayAdapter.getItem(which);
+                        mIsChecking = true;
+                        mBtnCheck.setText(R.string.finalize);
+                        mLnlCheckProgress.setVisibility(View.VISIBLE);
+                        mChronometer.setBase(SystemClock.elapsedRealtime());
+                        mChronometer.start();
+                        getUserLocation();
+                        stopLocationService();
+                        PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(false);
 
-                /*Here  we set the variables for the check in*/
-                mIsChecking = true;
-                mBtnCheck.setText(R.string.finalize);
-                mLnlCheckProgress.setVisibility(View.VISIBLE);
-                mChronometer.setBase(SystemClock.elapsedRealtime());
-                mChronometer.start();
-                getUserLocation();
-                stopLocationService();
-                PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(false);
-            }
-        });
-        builderSingle.show();
+                        return true;
+                    }
+                })
+                .widgetColorRes(R.color.colorPrimary)
+                .positiveText(R.string.accept)
+                .positiveColorRes(R.color.colorPrimary)
+                .show();
+
     }
 }
