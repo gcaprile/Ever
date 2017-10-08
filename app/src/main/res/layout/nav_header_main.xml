@@ -28,18 +28,17 @@
         tools:text="Android Studio"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
+    <TextView
+        android:id="@+id/text_view_user_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="android.studio@android.com" />
 
     <TextView
         android:id="@+id/text_view_profile_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         tools:text="Profile name" />
-
-    <TextView
-        android:id="@+id/text_view_email"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:text="android.studio@android.com" />
 
 
 </LinearLayout>

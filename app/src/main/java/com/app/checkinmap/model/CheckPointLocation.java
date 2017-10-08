@@ -16,8 +16,11 @@ public class CheckPointLocation extends RealmObject {
     private double checkInLongitude;
     private double checkOutLatitude;
     private double checkOutLongitude;
-    private String CheckInDate;
-    private String CheckOutDate;
+    private String checkInDate;
+    private String checkOutDate;
+    private String visitType;
+    private String contact;
+    private String description;
 
     public long getId() {
         return id;
@@ -60,18 +63,42 @@ public class CheckPointLocation extends RealmObject {
     }
 
     public String getCheckInDate() {
-        return CheckInDate;
+        return checkInDate;
     }
 
     public void setCheckInDate(String checkInDate) {
-        CheckInDate = checkInDate;
+        this.checkInDate = checkInDate;
     }
 
     public String getCheckOutDate() {
-        return CheckOutDate;
+        return checkOutDate;
     }
 
     public void setCheckOutDate(String checkOutDate) {
-        CheckOutDate = checkOutDate;
+        this.checkOutDate = checkOutDate;
+    }
+
+    public String getVisitType() {
+        return visitType;
+    }
+
+    public void setVisitType(String visitType) {
+        this.visitType = visitType;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getContact() {
+        return contact;
+    }
+
+    public void setContact(String contact) {
+        this.contact = contact;
     }
 }

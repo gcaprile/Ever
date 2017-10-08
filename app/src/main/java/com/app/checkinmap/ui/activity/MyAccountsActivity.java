@@ -34,7 +34,10 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+import static com.app.checkinmap.ui.activity.AccountDetailActivity.REQUEST_ADDRESS_SELECTION;
+
 public class MyAccountsActivity extends AppCompatActivity implements AccountAdapterList.OnItemClickListener {
+    public static final int REQUEST_ACCOUNT_SELECTION = 77;
 
     @BindView(R.id.rcv_accounts)
     RecyclerView mRv;
@@ -75,6 +78,19 @@ public class MyAccountsActivity extends AppCompatActivity implements AccountAdap
 
         /*Here we get the accounts from the sales force*/
         getAccountFromSalesForce();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode){
+            case REQUEST_ADDRESS_SELECTION:
+                if(resultCode == RESULT_OK){
+                    setResult(RESULT_OK);
+                    finish();
+                }
+                break;
+        }
     }
 
     /**
@@ -139,6 +155,6 @@ public class MyAccountsActivity extends AppCompatActivity implements AccountAdap
 
     @Override
     public void onItemClick(Account account) {
-        startActivity(AccountDetailActivity.getIntent(getApplicationContext(),account));
+        startActivityForResult(AccountDetailActivity.getIntent(getApplicationContext(),account),REQUEST_ADDRESS_SELECTION);
     }
 }

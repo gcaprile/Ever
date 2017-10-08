@@ -70,7 +70,7 @@
     <string name="search">Buscar</string>
     <string name="technical">Técnico</string>
     <string name="my_orders">Mis ordenes</string>
-    <string name="candidates">Candidatos</string>
+    <string name="candidates">Mis clientes potenciales</string>
     <string name="my_work_orders">Mis ordenes de trabajo</string>
     <string name="account_description">Descripción de la cuenta</string>
     <string name="work_order_description">Descripción de la orden de trabajo</string>
@@ -84,6 +84,15 @@
     <string name="select_an_address">Seleccione una dirección para continuar</string>
     <string name="no_address_to_show">No existen direcciones para mostrar</string>
     <string name="select_visit_type">Seleccione el tipo de visita</string>
+    <string name="no_check_in_available">Se encuentra demasiado lejos para registrar la visita</string>
+    <string name="getting_contact_list">Obteniendo la lista de contactos&#8230;</string>
+    <string name="select_contact">Seleccione un contacto</string>
+    <string name="no_contacts_available">La cuenta no posee contactos</string>
+    <string name="contact_list_no_got">No fue posible obtener la lista de contactos</string>
+    <string name="visit_description">Descripción de visita</string>
+    <string name="visit_description_message">Describa o comenta la visita realizada</string>
+    <string name="text_description">Descripción</string>
+    <string name="no_description_typed">Olvidó describir o comentar la visita para finalizar</string>
 
     <string-array name="visit_type">
         <item>Seguimiento</item>

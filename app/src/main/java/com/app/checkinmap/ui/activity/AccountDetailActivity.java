@@ -37,7 +37,11 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+import static com.app.checkinmap.ui.activity.MapRouteActivity.REQUEST_CHECK_IN;
+
 public class AccountDetailActivity extends AppCompatActivity implements AddressAdapterList.OnItemClickListener{
+
+    public static final int REQUEST_ADDRESS_SELECTION = 78;
 
      public static final String ARG_SELECTION="selection";
 
@@ -100,6 +104,19 @@ public class AccountDetailActivity extends AppCompatActivity implements AddressA
             onBackPressed();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode){
+            case REQUEST_CHECK_IN:
+                if(resultCode ==  RESULT_OK){
+                    setResult(RESULT_OK);
+                    finish();
+                }
+                break;
+        }
     }
 
     /**
@@ -166,8 +183,8 @@ public class AccountDetailActivity extends AppCompatActivity implements AddressA
     @Override
     public void onItemClick(AccountAddress accountAddress) {
         if(PreferenceManager.getInstance(this).isInRoute()){
-            startActivity(MapRouteActivity.getIntent(getApplicationContext(),mAccount.getName(),accountAddress));
-            finish();
+            startActivityForResult(MapRouteActivity.getIntent(getApplicationContext(),mAccount.getName(),accountAddress),
+                    REQUEST_CHECK_IN);
         }else{
             new AlertDialog.Builder(this)
                     .setTitle(R.string.app_name)

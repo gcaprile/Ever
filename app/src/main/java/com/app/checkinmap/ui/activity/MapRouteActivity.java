@@ -17,13 +17,16 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.bus.BusProvider;
@@ -32,12 +35,15 @@ import com.app.checkinmap.db.DatabaseManager;
 import com.app.checkinmap.model.Account;
 import com.app.checkinmap.model.AccountAddress;
 import com.app.checkinmap.model.CheckPointLocation;
+import com.app.checkinmap.model.Contact;
 import com.app.checkinmap.model.UserLocation;
 import com.app.checkinmap.service.LocationService;
+import com.app.checkinmap.util.ApiManager;
 import com.app.checkinmap.util.PreferenceManager;
 import com.app.checkinmap.util.Utility;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -46,11 +52,18 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.squareup.otto.Subscribe;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,22 +77,27 @@ import static android.R.attr.strokeColor;
 
 public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback{
 
-    public static final int PERMISSION_LOCATION_REQUEST = 12;
-    public static final int SIGNATURE_REQUEST = 15;
-    public static String   ARG_SELECTION="selection";
-    public static String   ARG_NAME="name";
-
-     @BindView(R.id.button_finalize_route)
-     Button mBtnStopRoute;
-
-    @BindView(R.id.button_check)
-    Button mBtnCheck;
+    public static final int  REQUEST_CHECK_IN = 79;
+    public static final int  PERMISSION_LOCATION_REQUEST = 12;
+    public static final int  SIGNATURE_REQUEST = 15;
+    public static String     ARG_SELECTION="selection";
+    public static String     ARG_NAME="name";
+    public static final int  CHECK_DISTANCE = 500;
 
     @BindView(R.id.linear_layout_check_progress)
     LinearLayout mLnlCheckProgress;
 
     @BindView(R.id.chronometer_view)
     Chronometer mChronometer;
+
+    @BindView(R.id.button_check)
+    TextView mBtnCheck;
+
+    @BindView(R.id.linear_layout_progress)
+    LinearLayout mMapProgress;
+
+    @BindView(R.id.map_progress_message)
+    TextView mMapProgressMessage;
 
     private GoogleMap                   mMap;
     private boolean                     mIsChecking=false;
@@ -89,18 +107,18 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
     private LocationManager             mLocationManager;
     private boolean                     mLocationSettingCalled=false;
     private Circle                      mCircle;
-    private boolean                     mIsFinalize=false;
     private AccountAddress              mAccountAddress;
-    private String                      mVisitType;
+    private boolean                     mFirstLoadRequest=true;
+    private boolean                     mNoAddressLocation=false;
 
     /**
      * This method help us to get a single
      * map instance
      */
-    public static Intent getIntent(Context context,String name,AccountAddress account){
+    public static Intent getIntent(Context context,String name,AccountAddress accountAddress){
         Intent intent = new Intent(context,MapRouteActivity.class);
         intent.putExtra(ARG_NAME,name);
-        intent.putExtra(ARG_SELECTION,account);
+        intent.putExtra(ARG_SELECTION,accountAddress);
         return intent;
     }
 
@@ -115,7 +133,7 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
         mAccountAddress = getIntent().getExtras().getParcelable(ARG_SELECTION);
 
         if(getSupportActionBar() != null){
-            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle(getIntent().getExtras().getString(ARG_NAME));
         }
 
@@ -129,9 +147,14 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        /*Here we check if we have the permissions*/
-        checkAndRequestPermissions();
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == android.R.id.home){
+            onBackPressed();
+        }
+        return super.onOptionsItemSelected(item);
     }
 
 
@@ -147,6 +170,16 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+         /*Here we check the permission*/
+        if(checkAndRequestPermissions()){
+            if(isGpsEnable()){
+                /*Here we request a explicit user location request*/
+                getUserLocation();
+            }else{
+                showGpsDisableMessage();
+            }
+        }
     }
 
 
@@ -179,8 +212,8 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-                    startLocationService();
-                    PreferenceManager.getInstance(this).setIsInRoute(true);
+                    mLocationPermissionGranted=true;
+                    getUserLocation();
                 } else {
                     showRationale();
                 }
@@ -216,54 +249,6 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
         stopService(new Intent(this, LocationService.class));
     }
 
-    @OnClick(R.id.button_finalize_route)
-    public void finalizeRoute(){
-        if(!mIsChecking){
-            stopLocationService();
-            PreferenceManager.getInstance(this).setIsInRoute(false);
-            startActivity(HistoryActivity.getIntent(this));
-            finish();
-        }else{
-            Toast.makeText(this,R.string.checking_is_in_progress,Toast.LENGTH_LONG).show();
-        }
-    }
-
-
-    /**
-     * This method help us to draw in the map
-     * all the user locations saved in the
-     * local data base
-     */
-    private void showSavedLocationOnMap(){
-        List<UserLocation> locations = DatabaseManager.getInstance().getUserLocationList();
-
-        for(UserLocation location : locations){
-            if (mMap != null) {
-                mMap.addMarker(
-                        new MarkerOptions()
-                                .position(new LatLng(location.getLatitude(), location.getLongitude()))
-                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)));
-            }
-        }
-        /*Her we make zoom in the last saved location*/
-        if(locations.size()>0){
-            if(mCircle!=null){
-                mCircle.remove();
-            }
-            UserLocation lastLocation = locations.get(locations.size()-1);
-            CircleOptions circleOptions = new CircleOptions();
-            circleOptions.center(new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude()));
-            circleOptions.radius(100);
-            circleOptions.fillColor(R.color.colorBlackTransparent);
-            circleOptions.strokeColor(R.color.colorBlue);
-            circleOptions.strokeWidth(4.0f);
-            mCircle = mMap.addCircle(circleOptions);
-
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                    new LatLng(lastLocation.getLatitude(),
-                            lastLocation.getLongitude()), 15));
-        }
-    }
 
     /**
      * This method help us to get the
@@ -277,13 +262,13 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
     @OnClick(R.id.button_check)
     public void checkUserLocation(){
         if(mIsChecking){
-            if(PreferenceManager.getInstance(this).isSeller()){
-                showCheckInFinalizeMessage();
-            }else{
-                startActivityForResult(SignatureActivity.getIntent(this,getIntent().getExtras().getString(ARG_SELECTION)),SIGNATURE_REQUEST);
-            }
+            showCommentDialog();
         }else{
-           showVisitTypeMessage();
+            mIsChecking = true;
+            mBtnCheck.setVisibility(View.GONE);
+            mMapProgressMessage.setText(R.string.getting_your_location);
+            mMapProgress.setVisibility(View.VISIBLE);
+            getUserLocation();
         }
     }
 
@@ -312,40 +297,7 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
         Log.d("LOCATION LAT:" , String.valueOf(newLocationEvent.getLat()));
         Log.d("LOCATION LON:" , String.valueOf(newLocationEvent.getLon()));
 
-        if (mMap != null) {
-            /*Here we clean the map*/
-            mMap.clear();
-
-            /*Here we remove the accuracy circle*/
-            if(mCircle!=null){
-                mCircle.remove();
-            }
-
-            /*here we add the accuracy circle with new user location*/
-            CircleOptions circleOptions = new CircleOptions();
-            circleOptions.center(new LatLng(newLocationEvent.getLat(),newLocationEvent.getLon()));
-            circleOptions.radius(100);
-            circleOptions.fillColor(R.color.colorBlackTransparent);
-            circleOptions.strokeColor(R.color.colorBlue);
-            circleOptions.strokeWidth(4.0f);
-            mCircle = mMap.addCircle(circleOptions);
-
-            /*Here we update the user location in the map*/
-            mMap.addMarker(
-                    new MarkerOptions()
-                            .position(new LatLng(newLocationEvent.getLat(), newLocationEvent.getLon()))
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-
-            /*Here we update the address location*/
-            if(mAccountAddress.getLatitude()!=0 && mAccountAddress.getLongitude()!=0){
-                mMap.addMarker(
-                        new MarkerOptions()
-                                .position(new LatLng(mAccountAddress.getLatitude(), mAccountAddress.getLongitude()))
-                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
-            }
-
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(newLocationEvent.getLat(), newLocationEvent.getLon()), 17));
-        }
+        drawUserAndAccountLocation(newLocationEvent.getLat(),newLocationEvent.getLon());
     }
 
     /**
@@ -367,27 +319,24 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
                             // Set the map's camera position to the current location of the device.
                             Location location = (Location) task.getResult();
                             if(location!=null){
-                                if(mIsChecking){
-                                    mCheckPointLocation = new CheckPointLocation();
-                                    mCheckPointLocation.setId(System.currentTimeMillis());
-                                    mCheckPointLocation.setCheckInLatitude(location.getLatitude());
-                                    mCheckPointLocation.setCheckInLongitude(location.getLongitude());
-                                    mCheckPointLocation.setCheckInDate(Utility.getCurrentDate());
+                                if(mFirstLoadRequest){
+
+                                    /*This is the first load in the activity and we need to show only the user location
+                                     *and account address location
+                                     */
+                                    mFirstLoadRequest= false;
+                                    drawUserAndAccountLocation(location.getLatitude(),location.getLongitude());
                                 }else{
-                                    mCheckPointLocation.setCheckOutLatitude(location.getLatitude());
-                                    mCheckPointLocation.setCheckOutLongitude(location.getLongitude());
-                                    mCheckPointLocation.setCheckOutDate(Utility.getCurrentDate());
-                                    saveCheckPointLocation();
-                                    startActivity(HistoryActivity.getIntent(getApplicationContext()));
-                                    startLocationService();
-                                    finish();
+                                   /*Ths location was requested by the user to make the check in for the account address
+                                   */
+                                    saveCheckData(location.getLatitude(),location.getLongitude());
                                 }
                             }else{
-                                Toast.makeText(getApplicationContext(),R.string.no_user_location_available,Toast.LENGTH_LONG).show();
+                               showMessage(R.string.no_user_location_available);
                                 restartCheckInUi();
                             }
                         } else {
-                            Toast.makeText(getApplicationContext(),R.string.no_user_location_available,Toast.LENGTH_LONG).show();
+                            showMessage(R.string.no_user_location_available);
                             restartCheckInUi();
                         }
                     }
@@ -403,30 +352,13 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
      * check in UI
      */
     public void restartCheckInUi(){
+        mIsChecking=false;
         mBtnCheck.setText(R.string.check_in);
         mChronometer.stop();
+        mChronometer.setVisibility(View.INVISIBLE);
         mLnlCheckProgress.setVisibility(View.GONE);
-    }
-
-
-    private void saveCheckPointLocation(){
-        Realm realm = null;
-        try{
-            realm = Realm.getDefaultInstance();
-            realm.executeTransaction(new Realm.Transaction(){
-                @Override
-                public void execute(Realm realm) {
-                    realm.copyToRealmOrUpdate(mCheckPointLocation);
-                    Log.d("REALM CHECK POINT", "SUCCESS CHECK");
-                }
-            });
-        }catch(Exception e){
-            Log.d("REALM CHECK POINT", e.toString());
-        }finally {
-            if(realm != null){
-                realm.close();
-            }
-        }
+        mMapProgress.setVisibility(View.GONE);
+        mBtnCheck.setVisibility(View.VISIBLE);
     }
 
 
@@ -475,15 +407,19 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
      * for the location permission
      */
     public void showRationale(){
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.app_name)
-                .setMessage(R.string.location_permission_rationale)
-                .setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
+        new MaterialDialog.Builder(this)
+                .title(R.string.app_name)
+                .content(R.string.location_permission_rationale)
+                .positiveColorRes(R.color.colorPrimary)
+                .positiveText(R.string.accept)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                       checkAndRequestPermissions();
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        checkAndRequestPermissions();
                     }
-                }).setCancelable(false).show();
+                })
+                .cancelable(false)
+                .show();
 
     }
 
@@ -493,32 +429,31 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
      * finalize
      */
     public void showCheckInFinalizeMessage(){
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.app_name)
-                .setMessage(R.string.check_in_finalize)
-                .setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        finalizeCheckIn();
-                    }
-                }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.dismiss();
-            }
-        }).setCancelable(false).show();
-    }
 
-    /**
-     * This method finalize the check in
-     * action
-     */
-    public void finalizeCheckIn(){
-        mIsChecking = false;
-        mBtnCheck.setText(R.string.check_in);
-        mLnlCheckProgress.setVisibility(View.GONE);
-        mChronometer.stop();
-        getUserLocation();
+        new MaterialDialog.Builder(this)
+                .title(R.string.app_name)
+                .content(R.string.check_in_finalize)
+                .positiveColorRes(R.color.colorPrimary)
+                .positiveText(R.string.accept)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        /*Here we request the user location to finalize the check*/
+                        mIsChecking=false;
+                        getUserLocation();
+                        dialog.dismiss();
+                    }
+                })
+                .negativeColorRes(R.color.colorPrimary)
+                .negativeText(R.string.cancel)
+                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss();
+                    }
+                })
+                .cancelable(false)
+                .show();
     }
 
     /**
@@ -526,16 +461,46 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
      * that the selected account doesnt have
      * a location in the data base
      */
-    public void showNoAddressMessage(){
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.no_address_title)
-                .setMessage(R.string.no_address_description)
-                .setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
+    public void showMessage(int message){
+
+        new MaterialDialog.Builder(this)
+                .title(R.string.app_name)
+                .content(message)
+                .positiveColorRes(R.color.colorPrimary)
+                .positiveText(R.string.accept)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                       dialogInterface.dismiss();
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                        dialog.dismiss();
                     }
-                }).setCancelable(false).show();
+                })
+                .cancelable(false)
+                .show();
+    }
+
+
+    /**
+     * This method show a message explaining
+     * that the selected account doesnt have
+     * a location in the data base
+     */
+    public void showMessage(String message){
+
+        new MaterialDialog.Builder(this)
+                .title(R.string.app_name)
+                .content(message)
+                .positiveColorRes(R.color.colorPrimary)
+                .positiveText(R.string.accept)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                        dialog.dismiss();
+                    }
+                })
+                .cancelable(false)
+                .show();
     }
 
     /**
@@ -547,18 +512,17 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
         new MaterialDialog.Builder(this)
                 .title(R.string.select_visit_type)
                 .items(R.array.visit_type)
-                .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
+                .itemsCallbackSingleChoice(0, new MaterialDialog.ListCallbackSingleChoice() {
                     @Override
                     public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
+                        /*Here we save the visit type*/
+                        mCheckPointLocation.setVisitType(text.toString());
 
-                        mIsChecking = true;
-                        mBtnCheck.setText(R.string.finalize);
-                        mLnlCheckProgress.setVisibility(View.VISIBLE);
-                        mChronometer.setBase(SystemClock.elapsedRealtime());
-                        mChronometer.start();
-                        getUserLocation();
-                        stopLocationService();
-                        PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(false);
+                        /*Here we show the map progress barr*/
+                        mMapProgressMessage.setText(R.string.getting_contact_list);
+                        mMapProgress.setVisibility(View.VISIBLE);
+
+                        getContactList();
 
                         return true;
                     }
@@ -566,7 +530,292 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
                 .widgetColorRes(R.color.colorPrimary)
                 .positiveText(R.string.accept)
                 .positiveColorRes(R.color.colorPrimary)
+                .cancelable(false)
                 .show();
+    }
 
+    /**
+     * This method help us to save the user
+     * check in data
+     */
+    public void saveCheckData(double latitude, double longitude){
+        if(isInRadius(latitude,longitude)){
+            if(mIsChecking){
+                mCheckPointLocation = new CheckPointLocation();
+                mCheckPointLocation.setId(System.currentTimeMillis());
+                mCheckPointLocation.setCheckInLatitude(latitude);
+                mCheckPointLocation.setCheckInLongitude(longitude);
+                mCheckPointLocation.setCheckInDate(Utility.getCurrentDate());
+
+                /*Here we hide the progress*/
+                mMapProgress.setVisibility(View.GONE);
+
+                /*Here we ask the visit type*/
+                showVisitTypeMessage();
+            }else{
+                mCheckPointLocation.setCheckOutLatitude(latitude);
+                mCheckPointLocation.setCheckOutLongitude(longitude);
+                mCheckPointLocation.setCheckOutDate(Utility.getCurrentDate());
+
+                /*Here we save the data in Real*/
+                saveCheckPointLocation();
+
+                /*Here we return to route mode*/
+                PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(true);
+
+                /*Here we finalize the activity for result*/
+                setResult(RESULT_OK);
+                finish();
+            }
+        }else{
+            showMessage(R.string.no_check_in_available);
+            restartCheckInUi();
+        }
+
+    }
+
+
+    /**
+     * This method help us to  save the check data
+     * in the local storage
+     */
+    private void saveCheckPointLocation(){
+        Realm realm = null;
+        try{
+            realm = Realm.getDefaultInstance();
+            realm.executeTransaction(new Realm.Transaction(){
+                @Override
+                public void execute(Realm realm) {
+                    realm.copyToRealmOrUpdate(mCheckPointLocation);
+                    Log.d("REALM CHECK POINT", "SUCCESS CHECK");
+                }
+            });
+        }catch(Exception e){
+            Log.d("REALM CHECK POINT", e.toString());
+        }finally {
+            if(realm != null){
+                realm.close();
+            }
+        }
+    }
+
+    /**
+     * This method help us to drew in the map the
+     * user location and the account/order work
+     * location
+     */
+    public void drawUserAndAccountLocation(double userLatitude, double userLongitude){
+        if (mMap != null) {
+            /*Here we clean the map*/
+            mMap.clear();
+
+            /*Here we remove the accuracy circle*/
+            if(mCircle!=null){
+                mCircle.remove();
+            }
+
+            /*here we add the accuracy circle with new user location*/
+            CircleOptions circleOptions = new CircleOptions();
+            circleOptions.center(new LatLng(userLatitude,userLongitude));
+            circleOptions.radius(CHECK_DISTANCE);
+            circleOptions.fillColor(R.color.colorBlackTransparent);
+            //circleOptions.strokeColor(R.color.colorBlue);
+             circleOptions.strokeWidth(0.1f);
+            mCircle = mMap.addCircle(circleOptions);
+
+            /*Here we update the user location in the map*/
+            mMap.addMarker(
+                    new MarkerOptions()
+                            .position(new LatLng(userLatitude, userLongitude))
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+
+
+
+            /*Here we update the address location*/
+            if(mAccountAddress.getLatitude()==0 && mAccountAddress.getLongitude()==0){
+
+                mAccountAddress.setLatitude(userLatitude);
+                mAccountAddress.setLongitude(userLongitude);
+
+                mNoAddressLocation=true;
+
+                 /*Here we show an explanation*/
+                showMessage(R.string.no_address_description);
+
+            }
+
+            if(mNoAddressLocation){
+
+                /*Here we update the account location*/
+                mMap.addMarker(
+                        new MarkerOptions()
+                                .position(new LatLng(mAccountAddress.getLatitude(), mAccountAddress.getLongitude()))
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
+
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        new LatLng(mAccountAddress.getLatitude(),
+                                mAccountAddress.getLongitude()), 13));
+            }else{
+                int padding=60;// offset from edges of the map in pixels
+
+              /*Here we update the account location*/
+                mMap.addMarker(
+                        new MarkerOptions()
+                                .position(new LatLng(mAccountAddress.getLatitude(), mAccountAddress.getLongitude()))
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
+
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                builder.include(new LatLng(userLatitude,userLongitude));
+                builder.include(new LatLng(mAccountAddress.getLatitude(),mAccountAddress.getLongitude()));
+                LatLngBounds bounds = builder.build();
+
+
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+
+                mMap.animateCamera(cameraUpdate);
+            }
+
+            if(!mBtnCheck.isShown()){
+                if(!mIsChecking){
+                    mBtnCheck.setVisibility(View.VISIBLE);
+                }
+            }
+
+            if(mMapProgress.isShown()){
+                mMapProgress.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    /**
+     * This method help us to check if the user location
+     * and account address location are in the correct
+     * radius
+     */
+    public boolean isInRadius(double userLatitude, double userLongitude){
+        boolean flag = false;
+        /*Here we define the objects*/
+        Location locationUser = new Location("");
+        Location locationAccount = new Location("");
+
+        /*Hre we set the location data*/
+        locationUser.setLatitude(userLatitude);
+        locationUser.setLongitude(userLongitude);
+        locationAccount.setLatitude(mAccountAddress.getLatitude());
+        locationAccount.setLongitude(mAccountAddress.getLongitude());
+
+        /*Here we get the distance between locations*/
+        float distance = locationUser.distanceTo(locationAccount);
+
+        if(distance<= CHECK_DISTANCE){
+            flag = true;
+        }
+        return flag;
+    }
+
+    /**
+     * This method help us to get the contact list
+     * from sales force
+     */
+    public void getContactList(){
+
+        String osql="SELECT Id, Name, Phone, MobilePhone, Email, Department, AccountId, " +
+                "Tipo_de_contacto__c FROM Contact WHERE AccountId = '"+mAccountAddress.getAccountId()+"'";
+
+        ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
+            @Override
+            public void onObject(boolean success, JSONObject jsonObject, String errorMessage) {
+                mMapProgress.setVisibility(View.GONE);
+                if(success){
+                    try {
+                        Utility.logLargeString(jsonObject.toString());
+                        Type listType = new TypeToken<List<Contact>>() {}.getType();
+                        List<Contact> contactList = new Gson().fromJson(jsonObject.getJSONArray("records").toString(), listType);
+                        showContactListMessage(contactList);
+                    } catch (JSONException e) {
+                        restartCheckInUi();
+                        showMessage(getString(R.string.contact_list_no_got));
+                    }
+                }else{
+                    restartCheckInUi();
+                    showMessage(errorMessage);
+                }
+            }
+        });
+    }
+
+    /**
+     * This method show a dialog with the
+     * contact list for the check in
+     */
+    public void showContactListMessage(List<Contact> contactList){
+        if(contactList.size()>0){
+            ArrayList<String> contacts = new ArrayList<>();
+
+            for(Contact contact: contactList){
+                contacts.add(contact.getName());
+            }
+
+            new MaterialDialog.Builder(this)
+                    .title(R.string.select_contact)
+                    .items(contacts)
+                    .itemsCallbackSingleChoice(0, new MaterialDialog.ListCallbackSingleChoice() {
+                        @Override
+                        public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
+                           /*Here we save the visit type*/
+                            mCheckPointLocation.setContact(text.toString());
+
+                            /*Here we start the check in*/
+                            mChronometer.setBase(SystemClock.elapsedRealtime());
+
+                           /*Here we start the checking time*/
+                            mChronometer.start();
+                            mLnlCheckProgress.setVisibility(View.VISIBLE);
+                            mBtnCheck.setText(R.string.finalize);
+                            mBtnCheck.setVisibility(View.VISIBLE);
+                            PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(false);
+                            return true;
+                        }
+                    })
+                    .widgetColorRes(R.color.colorPrimary)
+                    .positiveText(R.string.accept)
+                    .positiveColorRes(R.color.colorPrimary)
+                    .cancelable(false)
+                    .show();
+        }else{
+            showMessage(R.string.no_contacts_available);
+            restartCheckInUi();
+        }
+    }
+
+    /**
+     * This dialog help su to get the comment or
+     * description about the visit before save
+     * the check point data
+     */
+    public void showCommentDialog(){
+        new MaterialDialog.Builder(this)
+                .title(R.string.visit_description)
+                .contentColorRes(R.color.colorPrimaryDark)
+                .content(R.string.visit_description_message)
+                .positiveColorRes(R.color.colorPrimary)
+                .positiveText(R.string.accept)
+                .input(R.string.text_description, 0, new MaterialDialog.InputCallback() {
+                    @Override
+                    public void onInput(MaterialDialog dialog, CharSequence input) {
+                       if(input.toString().compareTo("")!=0){
+                           mCheckPointLocation.setDescription(input.toString());
+                           if(PreferenceManager.getInstance(getApplicationContext()).isSeller()){
+                               showCheckInFinalizeMessage();
+                           }else{
+                               startActivityForResult(SignatureActivity.getIntent(getApplicationContext(),getIntent().getExtras().getString(ARG_SELECTION)),SIGNATURE_REQUEST);
+                           }
+                       }else{
+                         showMessage(R.string.no_description_typed);
+                       }
+                    }
+                })
+                .widgetColorRes(R.color.colorPrimary)
+                .show();
     }
 }

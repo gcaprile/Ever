@@ -63,6 +63,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 import static com.app.checkinmap.ui.activity.MapRouteActivity.PERMISSION_LOCATION_REQUEST;
+import static com.app.checkinmap.ui.activity.MyAccountsActivity.REQUEST_ACCOUNT_SELECTION;
 
 public class DashBoardActivity extends AppCompatActivity
         implements OnMapReadyCallback,NavigationView.OnNavigationItemSelectedListener {
@@ -87,6 +88,7 @@ public class DashBoardActivity extends AppCompatActivity
     private GoogleMap                   mMap;
     private boolean                     mLocationPermissionGranted=false;
     private FusedLocationProviderClient mFusedLocationProviderClient;
+
 
     /**
      * This method help us to get a single intent
@@ -163,23 +165,14 @@ public class DashBoardActivity extends AppCompatActivity
         /*Here we set the user data*/
         TextView mTxvAccountName = mNavigationView.getHeaderView(0).findViewById(R.id.text_view_account_name) ;
 
-        TextView mTxvEmail=  mNavigationView.getHeaderView(0).findViewById(R.id.text_view_email) ;
+        TextView mTxvUserName=  mNavigationView.getHeaderView(0).findViewById(R.id.text_view_user_name) ;
 
         TextView mTxvProfileName= mNavigationView.getHeaderView(0).findViewById(R.id.text_view_profile_name) ;
 
         RestClient.ClientInfo ci = Utility.getRestClient().getClientInfo();
         mTxvAccountName.setText(ci.displayName);
-        mTxvEmail.setText(ci.username);
+        mTxvUserName.setText(ci.username);
         mTxvProfileName.setText(Utility.getUserProfileName());
-
-        /*Here we check if we are in route*/
-        if(isInRoute()){
-            mTxvRouteButton.setText(R.string.finalize_route);
-            mTxvRouteButton.setBackgroundColor(getResources().getColor(R.color.colorRed));
-        }else{
-            mTxvRouteButton.setText(R.string.start_route);
-            mTxvRouteButton.setBackgroundColor(getResources().getColor(R.color.colorBlue));
-        }
 
         /*Here we show or hide the menu options*/
         switch (Utility.getUserRole()){
@@ -242,6 +235,17 @@ public class DashBoardActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode){
+            case REQUEST_ACCOUNT_SELECTION:
+                if(resultCode == RESULT_OK){
+                    startActivity(HistoryActivity.getIntent(this));
+                }
+                break;
+        }
+    }
 
     @Override
     public void onBackPressed() {
@@ -263,7 +267,7 @@ public class DashBoardActivity extends AppCompatActivity
         if (id == R.id.nav_my_information) {
             startActivity(MyInformationActivity.getIntent(this));
         } else if (id == R.id.nav_my_accounts) {
-            startActivity(MyAccountsActivity.getIntent(this));
+            startActivityForResult(MyAccountsActivity.getIntent(this), REQUEST_ACCOUNT_SELECTION);
         } else if (id == R.id.nav_my_orders) {
             startActivity(MyAccountsActivity.getIntent(this));
         }  else if (id == R.id.nav_sync) {
@@ -280,16 +284,14 @@ public class DashBoardActivity extends AppCompatActivity
     public void startRoute(){
        if(isInRoute()){
            stopLocationService();
-           mTxvRouteButton.setText(R.string.start_route);
-           mTxvRouteButton.setBackgroundColor(getResources().getColor(R.color.colorBlue));
            PreferenceManager.getInstance(this).setIsInRoute(false);
+           updateButtonUi();
        }else{
            if(checkAndRequestPermissions()){
                if(isGpsEnable()){
                    startLocationService();
-                   mTxvRouteButton.setText(R.string.finalize_route);
-                   mTxvRouteButton.setBackgroundColor(getResources().getColor(R.color.colorRed));
                    PreferenceManager.getInstance(this).setIsInRoute(true);
+                   updateButtonUi();
                }else{
                    showGpsDisableMessage();
                }
@@ -439,9 +441,12 @@ public class DashBoardActivity extends AppCompatActivity
                             if(location!=null){
                                 updateUserLocation(location.getLatitude(),location.getLongitude());
                             }
-                            /*Here we start the location service*/
-                            startLocationService();
                         }
+                        /*Here we start the location service*/
+                        startLocationService();
+
+                            /*Here we update the button ui*/
+                        updateButtonUi();
                     }
                 });
             }
@@ -479,4 +484,18 @@ public class DashBoardActivity extends AppCompatActivity
           }
       }
 
+      /**
+       * This method help us to update the
+       * UI main button
+       */
+      public void updateButtonUi(){
+          /*Here we check if we are in route*/
+          if(isInRoute()){
+              mTxvRouteButton.setText(R.string.finalize_route);
+              mTxvRouteButton.setBackgroundColor(getResources().getColor(R.color.colorRed));
+          }else{
+              mTxvRouteButton.setText(R.string.start_route);
+              mTxvRouteButton.setBackgroundColor(getResources().getColor(R.color.colorBlue));
+          }
+      }
 }
