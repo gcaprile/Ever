@@ -12,15 +12,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.app.checkinmap.R;
 import com.app.checkinmap.model.Account;
-import com.app.checkinmap.model.Record;
+import com.app.checkinmap.model.Lead;
 import com.app.checkinmap.ui.adapter.AccountAdapterList;
-import com.app.checkinmap.ui.adapter.HistoryAdapterList;
+import com.app.checkinmap.ui.adapter.LeadAdapterList;
 import com.app.checkinmap.util.ApiManager;
-import com.app.checkinmap.util.PreferenceManager;
 import com.app.checkinmap.util.Utility;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -36,10 +34,11 @@ import butterknife.ButterKnife;
 
 import static com.app.checkinmap.ui.activity.AccountDetailActivity.REQUEST_ADDRESS_SELECTION;
 
-public class MyAccountsActivity extends AppCompatActivity implements AccountAdapterList.OnItemClickListener {
-    public static final int REQUEST_ACCOUNT_SELECTION = 77;
+public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterList.OnItemClickListener{
 
-    @BindView(R.id.rcv_accounts)
+    public static final int REQUEST_LEAD_SELECTION = 27;
+
+    @BindView(R.id.rcv_leads)
     RecyclerView mRv;
 
     @BindView(R.id.progress_bar)
@@ -48,43 +47,43 @@ public class MyAccountsActivity extends AppCompatActivity implements AccountAdap
     @BindView(R.id.text_view_message)
     TextView mTxvMessage;
 
-    private AccountAdapterList mAdapter;
+    private LeadAdapterList mAdapter;
 
     /**
      * This method help us to get a single
-     * intent in order to get a my account activity
+     * intent in order to get a my lead activity
      * instance
      */
     public static Intent getIntent(Context context){
-        Intent intent = new Intent(context,MyAccountsActivity.class);
+        Intent intent = new Intent(context,MyLeadsActivity.class);
         return intent;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_my_accounts);
+        setContentView(R.layout.activity_my_leads);
 
         ButterKnife.bind(this);
 
         if(getSupportActionBar() != null){
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(R.string.my_accounts);
+            getSupportActionBar().setTitle(R.string.candidates);
         }
 
         mRv.setHasFixedSize(true);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mRv.setLayoutManager(layoutManager);
 
-        /*Here we get the accounts from the sales force*/
-        getAccountFromSalesForce();
+        /*Here we get the leads from the sales force*/
+        getLeadFromSalesForce();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode){
-            case REQUEST_ADDRESS_SELECTION:
+            case 22:
                 if(resultCode == RESULT_OK){
                     setResult(RESULT_OK);
                     finish();
@@ -93,12 +92,15 @@ public class MyAccountsActivity extends AppCompatActivity implements AccountAdap
         }
     }
 
+
     /**
      * This method help us to get all the accounts from
      * sales force
      */
-    public void getAccountFromSalesForce(){
-        String osql = "SELECT Id, Name, Phone, Emasal_Address__c, Pais__c, Description FROM Account order by Id";
+    public void getLeadFromSalesForce(){
+        String osql = "SELECT Id, Name, Company, Pais__c, Latitude, Longitude," +
+                "Phone, Website, Email, Description FROM Lead WHERE Pais__c = '"+Utility.getUserCountry()+"'";
+
         ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
             @Override
             public void onObject(boolean success, JSONObject jsonObject, String errorMessage) {
@@ -106,18 +108,15 @@ public class MyAccountsActivity extends AppCompatActivity implements AccountAdap
                 mPgBar.setVisibility(View.GONE);
                 if(success){
                     Utility.logLargeString(jsonObject.toString());
-                    try {
-                        Type listType = new TypeToken<List<Account>>() {}.getType();
-                        List<Account> accountList = new Gson().fromJson(jsonObject.getJSONArray("records").toString(), listType);
-
-                        loadListData(accountList);
-
+                   try {
+                        Type listType = new TypeToken<List<Lead>>() {}.getType();
+                        List<Lead> leadList = new Gson().fromJson(jsonObject.getJSONArray("records").toString(), listType);
+                        loadListData(leadList);
                     } catch (JSONException e) {
                         e.printStackTrace();
                         mTxvMessage.setText(e.getMessage());
                         mTxvMessage.setVisibility(View.VISIBLE);
                     }
-
                 }else{
                     mTxvMessage.setText(errorMessage);
                     mTxvMessage.setVisibility(View.VISIBLE);
@@ -145,20 +144,21 @@ public class MyAccountsActivity extends AppCompatActivity implements AccountAdap
      * This method help us to load the data in the
      * recycler view
      */
-    public void loadListData(List<Account> accountList){
-        if(accountList.size()>0){
-            mAdapter = new AccountAdapterList(getApplicationContext(),accountList);
+    public void loadListData(List<Lead> leadList){
+
+        if(leadList.size()>0){
+            mAdapter = new LeadAdapterList(leadList);
             mAdapter.setOnItemClickListener(this);
             mRv.setAdapter(mAdapter);
             mRv.setVisibility(View.VISIBLE);
         }else{
-            mTxvMessage.setText(R.string.no_contacts_to_show);
+            mTxvMessage.setText(R.string.no_leads_to_show);
             mTxvMessage.setVisibility(View.VISIBLE);
         }
     }
 
     @Override
-    public void onItemClick(Account account) {
-        startActivityForResult(AccountDetailActivity.getIntent(getApplicationContext(),account),REQUEST_ADDRESS_SELECTION);
+    public void onItemClick(Lead lead) {
+
     }
 }

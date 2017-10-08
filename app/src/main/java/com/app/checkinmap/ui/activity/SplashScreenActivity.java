@@ -48,7 +48,7 @@ public class SplashScreenActivity extends SalesforceActivity {
         RestClient.ClientInfo clientInfo = Utility.getRestClient().getClientInfo();
 
         String osql ="SELECT User.id, User.Email, User.FirstName, User.LastName, User.profile.id, User.profile.name, User.Username, " +
-                "User.IsActive FROM User, User.profile WHERE User.id = '"+clientInfo.userId+"'";
+                "User.Country, User.IsActive FROM User, User.profile WHERE User.id = '"+clientInfo.userId+"'";
 
         ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
             @Override
@@ -58,6 +58,8 @@ public class SplashScreenActivity extends SalesforceActivity {
                     try {
                         Utility.setUserProfileId(jsonObject.getJSONArray("records").getJSONObject(0).getJSONObject("Profile").getString("Id"));
                         Utility.setUserProfileName(jsonObject.getJSONArray("records").getJSONObject(0).getJSONObject("Profile").getString("Name"));
+                        Utility.setUserCountry(jsonObject.getJSONArray("records").getJSONObject(0).getString("Country"));
+                        Log.d("Mira",jsonObject.getJSONArray("records").getJSONObject(0).getString("Country"));
                         startActivity(DashBoardActivity.getIntent(getApplicationContext()));
                         finish();
                     } catch (JSONException e) {

@@ -19,6 +19,7 @@ public class Utility {
     private static String      mUserProfileId;
     private static Roles       mUserRole;
     private static String      mUserProfileName;
+    private static String      mUserCountry;
 
     public enum Roles{
         SELLER,
@@ -116,5 +117,18 @@ public class Utility {
         } else {
             Log.i(TAG, str); // continuation
         }
+    }
+
+    /**
+     * This method get the user country
+     */
+    public static String getUserCountry(){
+        return mUserCountry ;
+    }
+
+    /**
+     * This method set the user country*/
+    public static void setUserCountry(String userCountry){
+        mUserCountry = userCountry;
     }
 }

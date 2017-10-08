@@ -2,11 +2,7 @@ package com.app.checkinmap.util;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.v4.app.ActivityCompat;
-import android.widget.Toast;
 
-import com.app.checkinmap.ui.activity.MainActivity;
-import com.salesforce.androidsdk.app.SalesforceSDKManager;
 import com.salesforce.androidsdk.rest.ApiVersionStrings;
 import com.salesforce.androidsdk.rest.RestClient;
 import com.salesforce.androidsdk.rest.RestRequest;

@@ -8,19 +8,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.app.checkinmap.R;
 import com.app.checkinmap.model.Account;
 import com.app.checkinmap.model.AccountAddress;
-import com.app.checkinmap.ui.adapter.AccountAdapterList;
 import com.app.checkinmap.ui.adapter.AddressAdapterList;
 import com.app.checkinmap.util.ApiManager;
 import com.app.checkinmap.util.PreferenceManager;
@@ -37,7 +33,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-import static com.app.checkinmap.ui.activity.MapRouteActivity.REQUEST_CHECK_IN;
+import static com.app.checkinmap.ui.activity.CheckPointMapActivity.REQUEST_CHECK_IN;
 
 public class AccountDetailActivity extends AppCompatActivity implements AddressAdapterList.OnItemClickListener{
 
@@ -183,7 +179,7 @@ public class AccountDetailActivity extends AppCompatActivity implements AddressA
     @Override
     public void onItemClick(AccountAddress accountAddress) {
         if(PreferenceManager.getInstance(this).isInRoute()){
-            startActivityForResult(MapRouteActivity.getIntent(getApplicationContext(),mAccount.getName(),accountAddress),
+            startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),mAccount.getName(),accountAddress),
                     REQUEST_CHECK_IN);
         }else{
             new AlertDialog.Builder(this)

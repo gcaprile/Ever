@@ -93,6 +93,8 @@
     <string name="visit_description_message">Describa o comenta la visita realizada</string>
     <string name="text_description">Descripción</string>
     <string name="no_description_typed">Olvidó describir o comentar la visita para finalizar</string>
+    <string name="no_leads_to_show">No existen clientes potenciales para mostrar</string>
+    <string name="no_contacts_to_show">No existen cuentas para mostrar</string>
 
     <string-array name="visit_type">
         <item>Seguimiento</item>

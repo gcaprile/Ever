@@ -12,31 +12,24 @@ import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.bus.BusProvider;
 import com.app.checkinmap.bus.NewLocationEvent;
-import com.app.checkinmap.db.DatabaseManager;
-import com.app.checkinmap.model.Account;
 import com.app.checkinmap.model.AccountAddress;
 import com.app.checkinmap.model.CheckPointLocation;
 import com.app.checkinmap.model.Contact;
-import com.app.checkinmap.model.UserLocation;
 import com.app.checkinmap.service.LocationService;
 import com.app.checkinmap.util.ApiManager;
 import com.app.checkinmap.util.PreferenceManager;
@@ -72,10 +65,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.realm.Realm;
 
-import static android.R.attr.fillColor;
-import static android.R.attr.strokeColor;
-
-public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback{
+public class CheckPointMapActivity extends AppCompatActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback{
 
     public static final int  REQUEST_CHECK_IN = 79;
     public static final int  PERMISSION_LOCATION_REQUEST = 12;
@@ -116,7 +106,7 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
      * map instance
      */
     public static Intent getIntent(Context context,String name,AccountAddress accountAddress){
-        Intent intent = new Intent(context,MapRouteActivity.class);
+        Intent intent = new Intent(context,CheckPointMapActivity.class);
         intent.putExtra(ARG_NAME,name);
         intent.putExtra(ARG_SELECTION,accountAddress);
         return intent;
@@ -125,7 +115,7 @@ public class MapRouteActivity extends AppCompatActivity implements OnMapReadyCal
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map_route);
+        setContentView(R.layout.activity_check_point_map);
 
         ButterKnife.bind(this);
 

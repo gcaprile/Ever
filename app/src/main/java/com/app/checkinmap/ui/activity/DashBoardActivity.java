@@ -2,13 +2,11 @@ package com.app.checkinmap.ui.activity;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.preference.PreferenceFragment;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -17,25 +15,19 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.bus.BusProvider;
 import com.app.checkinmap.bus.NewLocationEvent;
-import com.app.checkinmap.model.CheckPointLocation;
 import com.app.checkinmap.service.LocationService;
 import com.app.checkinmap.util.PreferenceManager;
 import com.app.checkinmap.util.Utility;
@@ -46,7 +38,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -62,8 +53,9 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-import static com.app.checkinmap.ui.activity.MapRouteActivity.PERMISSION_LOCATION_REQUEST;
+import static com.app.checkinmap.ui.activity.CheckPointMapActivity.PERMISSION_LOCATION_REQUEST;
 import static com.app.checkinmap.ui.activity.MyAccountsActivity.REQUEST_ACCOUNT_SELECTION;
+import static com.app.checkinmap.ui.activity.MyLeadsActivity.REQUEST_LEAD_SELECTION;
 
 public class DashBoardActivity extends AppCompatActivity
         implements OnMapReadyCallback,NavigationView.OnNavigationItemSelectedListener {
@@ -102,7 +94,7 @@ public class DashBoardActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_dash_board);
 
         ButterKnife.bind(this);
 
@@ -268,7 +260,9 @@ public class DashBoardActivity extends AppCompatActivity
             startActivity(MyInformationActivity.getIntent(this));
         } else if (id == R.id.nav_my_accounts) {
             startActivityForResult(MyAccountsActivity.getIntent(this), REQUEST_ACCOUNT_SELECTION);
-        } else if (id == R.id.nav_my_orders) {
+        } else if (id == R.id.nav_candidates) {
+            startActivityForResult(MyLeadsActivity.getIntent(this), REQUEST_LEAD_SELECTION);
+        }else if (id == R.id.nav_my_orders) {
             startActivity(MyAccountsActivity.getIntent(this));
         }  else if (id == R.id.nav_sync) {
 
@@ -283,13 +277,13 @@ public class DashBoardActivity extends AppCompatActivity
     @OnClick(R.id.button_start_rout)
     public void startRoute(){
        if(isInRoute()){
-           stopLocationService();
+          // stopLocationService();
            PreferenceManager.getInstance(this).setIsInRoute(false);
            updateButtonUi();
        }else{
            if(checkAndRequestPermissions()){
                if(isGpsEnable()){
-                   startLocationService();
+                   //startLocationService();
                    PreferenceManager.getInstance(this).setIsInRoute(true);
                    updateButtonUi();
                }else{
