@@ -59,7 +59,6 @@ public class SplashScreenActivity extends SalesforceActivity {
                         Utility.setUserProfileId(jsonObject.getJSONArray("records").getJSONObject(0).getJSONObject("Profile").getString("Id"));
                         Utility.setUserProfileName(jsonObject.getJSONArray("records").getJSONObject(0).getJSONObject("Profile").getString("Name"));
                         Utility.setUserCountry(jsonObject.getJSONArray("records").getJSONObject(0).getString("Country"));
-                        Log.d("Mira",jsonObject.getJSONArray("records").getJSONObject(0).getString("Country"));
                         startActivity(DashBoardActivity.getIntent(getApplicationContext()));
                         finish();
                     } catch (JSONException e) {

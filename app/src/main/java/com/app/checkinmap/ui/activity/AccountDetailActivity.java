@@ -3,6 +3,7 @@ package com.app.checkinmap.ui.activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,6 +15,8 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.model.Account;
 import com.app.checkinmap.model.AccountAddress;
@@ -178,18 +181,26 @@ public class AccountDetailActivity extends AppCompatActivity implements AddressA
 
     @Override
     public void onItemClick(AccountAddress accountAddress) {
+
         if(PreferenceManager.getInstance(this).isInRoute()){
-            startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),mAccount.getName(),accountAddress),
+            startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),1,mAccount.getName(),accountAddress),
                     REQUEST_CHECK_IN);
         }else{
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.app_name)
-                    .setMessage(R.string.you_should_start_the_route)
-                    .setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
+
+            new MaterialDialog.Builder(this)
+                    .title(R.string.app_name)
+                    .content(R.string.you_should_start_the_route)
+                    .positiveColorRes(R.color.colorPrimary)
+                    .positiveText(R.string.accept)
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
                         @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                            dialog.dismiss();
                         }
-                    }).setCancelable(false).show();
+                    })
+                    .cancelable(false)
+                    .show();
         }
     }
 }

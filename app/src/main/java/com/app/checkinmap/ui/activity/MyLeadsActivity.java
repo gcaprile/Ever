@@ -2,6 +2,7 @@ package com.app.checkinmap.ui.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,12 +14,16 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.model.Account;
+import com.app.checkinmap.model.AccountAddress;
 import com.app.checkinmap.model.Lead;
 import com.app.checkinmap.ui.adapter.AccountAdapterList;
 import com.app.checkinmap.ui.adapter.LeadAdapterList;
 import com.app.checkinmap.util.ApiManager;
+import com.app.checkinmap.util.PreferenceManager;
 import com.app.checkinmap.util.Utility;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -33,6 +38,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.app.checkinmap.ui.activity.AccountDetailActivity.REQUEST_ADDRESS_SELECTION;
+import static com.app.checkinmap.ui.activity.CheckPointMapActivity.REQUEST_CHECK_IN;
 
 public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterList.OnItemClickListener{
 
@@ -83,8 +89,8 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode){
-            case 22:
-                if(resultCode == RESULT_OK){
+            case REQUEST_CHECK_IN:
+                if(resultCode ==  RESULT_OK){
                     setResult(RESULT_OK);
                     finish();
                 }
@@ -140,6 +146,7 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
         return super.onOptionsItemSelected(item);
     }
 
+
     /**
      * This method help us to load the data in the
      * recycler view
@@ -159,6 +166,32 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
 
     @Override
     public void onItemClick(Lead lead) {
+        if(PreferenceManager.getInstance(this).isInRoute()){
+            //Here we create the address object
+            AccountAddress leadAddress= new AccountAddress();
+            leadAddress.setLatitude(lead.getLatitude());
+            leadAddress.setLongitude(lead.getLongitude());
+            leadAddress.setName(lead.getName());
 
+            //Here we start the check flow
+            startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),2,lead.getCompany(),leadAddress),
+                    REQUEST_CHECK_IN);
+        }else{
+
+            new MaterialDialog.Builder(this)
+                    .title(R.string.app_name)
+                    .content(R.string.you_should_start_the_route)
+                    .positiveColorRes(R.color.colorPrimary)
+                    .positiveText(R.string.accept)
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                            dialog.dismiss();
+                        }
+                    })
+                    .cancelable(false)
+                    .show();
+        }
     }
 }

@@ -95,6 +95,8 @@
     <string name="no_description_typed">Olvidó describir o comentar la visita para finalizar</string>
     <string name="no_leads_to_show">No existen clientes potenciales para mostrar</string>
     <string name="no_contacts_to_show">No existen cuentas para mostrar</string>
+    <string name="no_work_orders_to_show">No existen ordenes de trabajo para mostrar</string>
+    <string name="technical_main_check_fail">No fue posible verificar quien es el técnico principal de la orden de trabajo seleccionada</string>
 
     <string-array name="visit_type">
         <item>Seguimiento</item>

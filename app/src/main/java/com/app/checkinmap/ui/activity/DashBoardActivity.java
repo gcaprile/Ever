@@ -56,6 +56,7 @@ import butterknife.OnClick;
 import static com.app.checkinmap.ui.activity.CheckPointMapActivity.PERMISSION_LOCATION_REQUEST;
 import static com.app.checkinmap.ui.activity.MyAccountsActivity.REQUEST_ACCOUNT_SELECTION;
 import static com.app.checkinmap.ui.activity.MyLeadsActivity.REQUEST_LEAD_SELECTION;
+import static com.app.checkinmap.ui.activity.MyOrderWorksActivity.REQUEST_WORK_ORDER_SELECTION;
 
 public class DashBoardActivity extends AppCompatActivity
         implements OnMapReadyCallback,NavigationView.OnNavigationItemSelectedListener {
@@ -232,6 +233,7 @@ public class DashBoardActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode){
             case REQUEST_ACCOUNT_SELECTION:
+            case REQUEST_LEAD_SELECTION:
                 if(resultCode == RESULT_OK){
                     startActivity(HistoryActivity.getIntent(this));
                 }
@@ -263,7 +265,7 @@ public class DashBoardActivity extends AppCompatActivity
         } else if (id == R.id.nav_candidates) {
             startActivityForResult(MyLeadsActivity.getIntent(this), REQUEST_LEAD_SELECTION);
         }else if (id == R.id.nav_my_orders) {
-            startActivity(MyAccountsActivity.getIntent(this));
+            startActivityForResult(MyOrderWorksActivity.getIntent(this),REQUEST_WORK_ORDER_SELECTION);
         }  else if (id == R.id.nav_sync) {
 
         } else if (id == R.id.nav_exit) {

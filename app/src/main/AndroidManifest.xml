@@ -66,15 +66,16 @@
         <activity
             android:name=".ui.activity.MyInformationActivity"
             android:screenOrientation="portrait" />
-
-        <activity android:name=".ui.activity.SignatureActivity"
-            android:screenOrientation="portrait"/>
-
-        <activity android:name=".ui.activity.AccountDetailActivity"
-            android:screenOrientation="portrait"/>
-
-        <activity android:name=".ui.activity.MyLeadsActivity"
-            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.activity.SignatureActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.AccountDetailActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.MyLeadsActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".ui.activity.MyOrderWorksActivity"></activity>
     </application>
 
 </manifest>

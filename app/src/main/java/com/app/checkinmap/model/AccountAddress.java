@@ -39,6 +39,28 @@ public class AccountAddress implements Parcelable {
     @SerializedName("Cuenta__c")
     private String  mAccountId;
 
+    private boolean  mIsMainTechnical;
+
+    private String  mWorkOrderId;
+
+    public String getWorkOrderId() {
+        return mWorkOrderId;
+    }
+
+    public void setWorkOrderId(String workOrderId) {
+        this.mWorkOrderId = workOrderId;
+    }
+
+    public boolean isMainTechnical() {
+        return mIsMainTechnical;
+    }
+
+    public void setIsMainTechnical(boolean isMainTechnical) {
+        this.mIsMainTechnical = isMainTechnical;
+    }
+
+    public AccountAddress(){}
+
     protected AccountAddress(Parcel in) {
         mId = in.readString();
         mName = in.readString();
