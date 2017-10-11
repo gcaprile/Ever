@@ -27,7 +27,9 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.bus.BusProvider;
 import com.app.checkinmap.bus.NewLocationEvent;
+import com.app.checkinmap.db.DatabaseManager;
 import com.app.checkinmap.model.AccountAddress;
+import com.app.checkinmap.model.CheckPointData;
 import com.app.checkinmap.model.CheckPointLocation;
 import com.app.checkinmap.model.Contact;
 import com.app.checkinmap.service.LocationService;
@@ -67,13 +69,12 @@ import io.realm.Realm;
 
 public class CheckPointMapActivity extends AppCompatActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback{
 
-    public static final int  REQUEST_CHECK_IN = 79;
-    public static final int  PERMISSION_LOCATION_REQUEST = 12;
-    public static final int  SIGNATURE_REQUEST = 15;
-    public static String     ARG_SELECTION="selection";
-    public static String     ARG_NAME="name";
-    public static String     ARG_CHECK_POINT_TYPE="check_point_type";
-    public static final int  CHECK_DISTANCE = 500;
+    public static final int  REQUEST_CHECK_IN =             79;
+    public static final int  PERMISSION_LOCATION_REQUEST =  12;
+    public static final int  SIGNATURE_REQUEST =            15;
+    public static String     ARG_CHECK_POINT_DATA=          "check_point_data";
+    public static final int  CHECK_DISTANCE =               500;
+    public static final String ARG_CHECK_POINT_LOCATION_ID= "check_point_location_id";
 
     @BindView(R.id.linear_layout_check_progress)
     LinearLayout mLnlCheckProgress;
@@ -98,20 +99,18 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
     private LocationManager             mLocationManager;
     private boolean                     mLocationSettingCalled=false;
     private Circle                      mCircle;
-    private AccountAddress              mAccountAddress;
+    private CheckPointData              mCheckPointData;
     private boolean                     mFirstLoadRequest=true;
     private boolean                     mNoAddressLocation=false;
-    private int                         mCheckPointType=0;
+    //private int                         mCheckPointType=0;
 
     /**
      * This method help us to get a single
      * map instance
      */
-    public static Intent getIntent(Context context,int checkPointType,String name,AccountAddress accountAddress){
+    public static Intent getIntent(Context context, CheckPointData checkPointData){
         Intent intent = new Intent(context,CheckPointMapActivity.class);
-        intent.putExtra(ARG_NAME,name);
-        intent.putExtra(ARG_SELECTION,accountAddress);
-        intent.putExtra(ARG_CHECK_POINT_TYPE,checkPointType);
+        intent.putExtra(ARG_CHECK_POINT_DATA,checkPointData);
         return intent;
     }
 
@@ -123,12 +122,12 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
         ButterKnife.bind(this);
 
         /*Here we get the account address */
-        mAccountAddress = getIntent().getExtras().getParcelable(ARG_SELECTION);
-        mCheckPointType = getIntent().getExtras().getInt(ARG_CHECK_POINT_TYPE);
+        mCheckPointData = getIntent().getExtras().getParcelable(ARG_CHECK_POINT_DATA);
+
 
         if(getSupportActionBar() != null){
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(getIntent().getExtras().getString(ARG_NAME));
+            getSupportActionBar().setTitle(mCheckPointData.getName());
         }
 
         //Here we get the location manager
@@ -256,7 +255,11 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
     @OnClick(R.id.button_check)
     public void checkUserLocation(){
         if(mIsChecking){
-            showCommentDialog();
+            if(mCheckPointData.getCheckPointType() ==3){
+                checkSingActivity();
+            }else{
+                showCommentDialog();
+            }
         }else{
             mIsChecking = true;
             mBtnCheck.setVisibility(View.GONE);
@@ -511,15 +514,11 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                         /*Here we save the visit type*/
                         mCheckPointLocation.setVisitType(text.toString());
 
-                        if(mCheckPointType ==3 ){
-                            mCheckPointLocation.setContact(mAccountAddress.getName());
-                            startCheck();
-                        }else{
-                            /*Here we show the map progress barr*/
-                            mMapProgressMessage.setText(R.string.getting_contact_list);
-                            mMapProgress.setVisibility(View.VISIBLE);
-                            getContactList();
-                        }
+                        /*Here we show the map progress barr*/
+                        mMapProgressMessage.setText(R.string.getting_contact_list);
+                        mMapProgress.setVisibility(View.VISIBLE);
+                        getContactList();
+
                         return true;
                     }
                 })
@@ -547,17 +546,26 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 mMapProgress.setVisibility(View.GONE);
 
                 /*Here we ask the visit type*/
-                switch (mCheckPointType){
+                switch (mCheckPointData.getCheckPointType()){
                     case 1:
+                        mCheckPointLocation.setAddressId(mCheckPointData.getAddressId());
+                        mCheckPointLocation.setRecordType("0126A000000l3CuQAI");
                         showVisitTypeMessage();
                         break;
                     case 2:
                         mCheckPointLocation.setVisitType("Prospecto");
-                        mCheckPointLocation.setContact(mAccountAddress.getName());
+                        mCheckPointLocation.setLeadId(mCheckPointData.getId());
+                        mCheckPointLocation.setRecordType("0126A000000l3CzQAI");
+                        mCheckPointLocation.setAccountContactName(mCheckPointData.getName());
                         startCheck();
                         break;
                     case 3:
-                        showVisitTypeMessage();
+                        mCheckPointLocation.setWorkOrderId(mCheckPointData.getId());
+                        mCheckPointLocation.setWorkOrderContactId(mCheckPointData.getContactId());
+                        mCheckPointLocation.setTechnicalId(mCheckPointData.getMainTechnicalId());
+                        mCheckPointLocation.setRecordType("0126A000000l3D4QAI");
+                        mCheckPointLocation.setAccountContactName(mCheckPointData.getName());
+                        startCheck();
                         break;
                 }
             }else{
@@ -565,15 +573,26 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 mCheckPointLocation.setCheckOutLongitude(longitude);
                 mCheckPointLocation.setCheckOutDate(Utility.getCurrentDate());
 
+                /*Here we create the name*/
+                String name = "";
+                if(mCheckPointData.getName()!=null){
+                    name = Utility.getDateForName()+"-"+mCheckPointData.getName()+"-"+
+                            Utility.getRestClient().getClientInfo().username+
+                            "-"+ DatabaseManager.getInstance().getCorrelativeCheckPoint(PreferenceManager.getInstance(this).getRouteId());
+                }else{
+                    name = Utility.getDateForName()+"-"+
+                            Utility.getRestClient().getClientInfo().username+
+                            "-"+ DatabaseManager.getInstance().getCorrelativeCheckPoint(PreferenceManager.getInstance(this).getRouteId());
+                }
+                Log.d("checkP Name",name);
+                mCheckPointLocation.setName(name);
+                mCheckPointLocation.setRouteId(String.valueOf(PreferenceManager.getInstance(this).getRouteId()));
+                mCheckPointLocation.setVisitTime(Utility.getDurationInHours(mCheckPointLocation.getCheckInDate(),mCheckPointLocation.getCheckOutDate()));
+                String travelStartDate = DatabaseManager.getInstance().getTravelStartDate(PreferenceManager.getInstance(this).getRouteId());
+                mCheckPointLocation.setTravelTime(Utility.getDurationInHours(travelStartDate,mCheckPointLocation.getCheckInDate()));
+
                 /*Here we save the data in Real*/
                 saveCheckPointLocation();
-
-                /*Here we return to route mode*/
-                PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(true);
-
-                /*Here we finalize the activity for result*/
-                setResult(RESULT_OK);
-                finish();
             }
         }else{
             showMessage(R.string.no_check_in_available);
@@ -596,6 +615,23 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 public void execute(Realm realm) {
                     realm.copyToRealmOrUpdate(mCheckPointLocation);
                     Log.d("REALM CHECK POINT", "SUCCESS CHECK");
+
+                     /*Here we return to route mode*/
+                    PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(true);
+
+                    Intent dataIntent = new Intent();
+                    dataIntent.putExtra(ARG_CHECK_POINT_LOCATION_ID,mCheckPointLocation.getId());
+
+                    /**************************************************************************/
+
+                            /*ACTUALIZAR ACA EL ESTADO DE LA RUTA FINALIZADA*/
+
+                    /***********************************************************************/
+
+                    /*Here we finalize the activity for result*/
+                    setResult(RESULT_OK,dataIntent);
+                    finish();
+
                 }
             });
         }catch(Exception e){
@@ -640,10 +676,10 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
 
 
             /*Here we update the address location*/
-            if(mAccountAddress.getLatitude()==0 && mAccountAddress.getLongitude()==0){
+            if(mCheckPointData.getLatitude()==0 && mCheckPointData.getLongitude()==0){
 
-                mAccountAddress.setLatitude(userLatitude);
-                mAccountAddress.setLongitude(userLongitude);
+                mCheckPointData.setLatitude(userLatitude);
+                mCheckPointData.setLongitude(userLongitude);
 
                 mNoAddressLocation=true;
 
@@ -657,24 +693,24 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 /*Here we update the account location*/
                 mMap.addMarker(
                         new MarkerOptions()
-                                .position(new LatLng(mAccountAddress.getLatitude(), mAccountAddress.getLongitude()))
+                                .position(new LatLng(mCheckPointData.getLatitude(), mCheckPointData.getLongitude()))
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
 
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                        new LatLng(mAccountAddress.getLatitude(),
-                                mAccountAddress.getLongitude()), 13));
+                        new LatLng(mCheckPointData.getLatitude(),
+                                mCheckPointData.getLongitude()), 13));
             }else{
                 int padding=60;// offset from edges of the map in pixels
 
               /*Here we update the account location*/
                 mMap.addMarker(
                         new MarkerOptions()
-                                .position(new LatLng(mAccountAddress.getLatitude(), mAccountAddress.getLongitude()))
+                                .position(new LatLng(mCheckPointData.getLatitude(), mCheckPointData.getLongitude()))
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
 
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
                 builder.include(new LatLng(userLatitude,userLongitude));
-                builder.include(new LatLng(mAccountAddress.getLatitude(),mAccountAddress.getLongitude()));
+                builder.include(new LatLng(mCheckPointData.getLatitude(),mCheckPointData.getLongitude()));
                 LatLngBounds bounds = builder.build();
 
 
@@ -709,8 +745,8 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
         /*Hre we set the location data*/
         locationUser.setLatitude(userLatitude);
         locationUser.setLongitude(userLongitude);
-        locationAccount.setLatitude(mAccountAddress.getLatitude());
-        locationAccount.setLongitude(mAccountAddress.getLongitude());
+        locationAccount.setLatitude(mCheckPointData.getLatitude());
+        locationAccount.setLongitude(mCheckPointData.getLongitude());
 
         /*Here we get the distance between locations*/
         float distance = locationUser.distanceTo(locationAccount);
@@ -728,7 +764,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
     public void getContactList(){
 
         String osql="SELECT Id, Name, Phone, MobilePhone, Email, Department, AccountId, " +
-                "Tipo_de_contacto__c FROM Contact WHERE AccountId = '"+mAccountAddress.getAccountId()+"'";
+                "Tipo_de_contacto__c FROM Contact WHERE AccountId = '"+mCheckPointData.getId()+"'";
 
         ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
             @Override
@@ -756,7 +792,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
      * This method show a dialog with the
      * contact list for the check in
      */
-    public void showContactListMessage(List<Contact> contactList){
+    public void showContactListMessage(final List<Contact> contactList){
         if(contactList.size()>0){
             ArrayList<String> contacts = new ArrayList<>();
 
@@ -771,7 +807,8 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                         @Override
                         public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
                            /*Here we save the visit type*/
-                            mCheckPointLocation.setContact(text.toString());
+                            mCheckPointLocation.setAccountContactId(contactList.get(which).getId());
+                            mCheckPointLocation.setAccountContactName(text.toString());
 
                             /*Here we start the check flow*/
                             startCheck();
@@ -794,6 +831,12 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
      * flow
      */
     public void startCheck(){
+
+        /**************************************************************************/
+
+                            /*ACTUALIZAR ACA EL ESTADO DE LA RUTA COMENZADA*/
+
+        /***********************************************************************/
 
         /*Here we start the check in*/
         mChronometer.setBase(SystemClock.elapsedRealtime());
@@ -822,17 +865,13 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 .input(R.string.text_description, 0, new MaterialDialog.InputCallback() {
                     @Override
                     public void onInput(MaterialDialog dialog, CharSequence input) {
+
                        if(input.toString().compareTo("")!=0){
+
+                           /*Here we set the description*/
                            mCheckPointLocation.setDescription(input.toString());
-                           if(Utility.getUserRole() == Utility.Roles.SELLER){
-                               showCheckInFinalizeMessage();
-                           }else{
-                              if(mAccountAddress.isIsPrincipal()){
-                                  startActivityForResult(SignatureActivity.getIntent(getApplicationContext(),getIntent().getExtras().getString(ARG_SELECTION)),SIGNATURE_REQUEST);
-                              }else{
-                                  showCheckInFinalizeMessage();
-                              }
-                           }
+
+                           checkSingActivity();
                        }else{
                          showMessage(R.string.no_description_typed);
                        }
@@ -840,5 +879,22 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 })
                 .widgetColorRes(R.color.colorPrimary)
                 .show();
+    }
+
+    /**
+     * This method help us to check if we need
+     * show the sign activity
+     */
+    public void checkSingActivity(){
+         /*Here we check if we have to get the signature*/
+        if(Utility.getUserRole() == Utility.Roles.SELLER){
+            showCheckInFinalizeMessage();
+        }else{
+            if(mCheckPointData.isIsMainTechnical()){
+                startActivityForResult(SignatureActivity.getIntent(getApplicationContext(),mCheckPointData.getName()),SIGNATURE_REQUEST);
+            }else{
+                showCheckInFinalizeMessage();
+            }
+        }
     }
 }

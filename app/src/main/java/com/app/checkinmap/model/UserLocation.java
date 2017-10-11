@@ -7,10 +7,19 @@ import io.realm.annotations.PrimaryKey;
 public class UserLocation extends RealmObject{
 
     @PrimaryKey
-    private long id;
+    private long   id;
     private double latitude;
     private double longitude;
     private String date;
+    private long   routeId;
+
+    public long getRouteId() {
+        return routeId;
+    }
+
+    public void setRouteId(long routeId) {
+        this.routeId = routeId;
+    }
 
     public long getId() {
         return id;

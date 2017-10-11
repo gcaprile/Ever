@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tool="http://schemas.android.com/tools"
+    android:layout_margin="10dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="@string/text_visit_time"/>
+
+    <TextView
+        android:id="@+id/text_view_visit_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tool:text="1 hora"/>
+
+    <TextView
+        android:id="@+id/text_view_visit_type_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        android:text="@string/text_visit_type"/>
+
+    <TextView
+        android:id="@+id/text_view_visit_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tool:text="Propecto"/>
+
+    <TextView
+        android:id="@+id/text_view_visit_description_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        android:text="@string/text_visit_description"/>
+
+    <TextView
+        android:id="@+id/text_view_visit_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tool:text="Estes es un comentario de visita realizada"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        android:text="@string/text_contact"/>
+
+    <TextView
+        android:id="@+id/text_view_contact"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tool:text="Nombre de contacto visitado"/>
+
+</LinearLayout>

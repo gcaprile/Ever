@@ -45,7 +45,7 @@ public class LeadAdapterList extends RecyclerView.Adapter<LeadAdapterList.Accoun
     public void onBindViewHolder(AccountViewHolder holder, int position) {
         holder.tvTitle.setText(mLeadList.get(position).getName());
         holder.tvSubTitle.setText(mLeadList.get(position).getCompany());
-        holder.tvDescription.setText(mLeadList.get(position).getEmail());
+        holder.tvDescription.setText(mLeadList.get(position).getAddress());
     }
 
     @Override

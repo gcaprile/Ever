@@ -1,12 +1,11 @@
 package com.app.checkinmap.ui.activity;
 
-import android.content.BroadcastReceiver;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -32,18 +31,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.app.checkinmap.ui.activity.CheckPointMapActivity.REQUEST_CHECK_IN;
-import static com.app.checkinmap.ui.activity.SearchableLeadsActivity.ACTION_SEARCH_RESULT;
 
-public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterList.OnItemClickListener{
+public class SearchableLeadsActivity extends AppCompatActivity implements LeadAdapterList.OnItemClickListener{
 
     public static final int REQUEST_LEAD_SELECTION = 27;
-    public static final String ARG_CHECK_POINT_DATA="lead_selected";
+    public static final String ACTION_SEARCH_RESULT= "com.app.checkinmap.SEARCH_RESULT";
 
     @BindView(R.id.rcv_leads)
     RecyclerView mRv;
@@ -55,21 +54,7 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
     TextView mTxvMessage;
 
     private LeadAdapterList mAdapter;
-
-    BroadcastReceiver mSearchResultReceiver = new BroadcastReceiver() {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(ACTION_SEARCH_RESULT)) {
-                CheckPointData checkPointData = intent.getExtras().getParcelable(ARG_CHECK_POINT_DATA);
-                if(checkPointData!=null){
-                    startCheckPointFlow(checkPointData);
-                }
-            }
-
-        }
-    };
-
+    private String mQuery;
 
     /**
      * This method help us to get a single
@@ -77,7 +62,7 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
      * instance
      */
     public static Intent getIntent(Context context){
-        Intent intent = new Intent(context,MyLeadsActivity.class);
+        Intent intent = new Intent(context,SearchableLeadsActivity.class);
         return intent;
     }
 
@@ -90,17 +75,28 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
 
         if(getSupportActionBar() != null){
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(R.string.candidates);
+            getSupportActionBar().setTitle(R.string.text_result);
         }
 
-        mRv.setHasFixedSize(true);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        mRv.setLayoutManager(layoutManager);
 
-        /*Here we get the leads from the sales force*/
-        getLeadFromSalesForce();
+        // Get the intent, verify the action and get the query
+        Intent intent = getIntent();
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            mQuery = intent.getStringExtra(SearchManager.QUERY);
 
-        registerReceiver(mSearchResultReceiver, new IntentFilter(SearchableLeadsActivity.ACTION_SEARCH_RESULT));
+            mRv.setHasFixedSize(true);
+            LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+            mRv.setLayoutManager(layoutManager);
+
+            /*Here we get the leads from the sales force*/
+            getLeadFromSalesForce();
+
+        }else{
+            mPgBar.setVisibility(View.GONE);
+            mTxvMessage.setText(R.string.text_no_result);
+            mTxvMessage.setVisibility(View.VISIBLE);
+        }
+
     }
 
     @Override
@@ -116,11 +112,6 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(mSearchResultReceiver);
-    }
 
     /**
      * This method help us to get all the accounts from
@@ -154,22 +145,11 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
         });
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.search, menu);
-        return true;
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
-            case android.R.id.home:
-                onBackPressed();
-                break;
-            case R.id.action_search:
-                onSearchRequested();
-                break;
+        if(item.getItemId() == android.R.id.home){
+            onBackPressed();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -182,14 +162,51 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
     public void loadListData(List<Lead> leadList){
 
         if(leadList.size()>0){
-            mAdapter = new LeadAdapterList(leadList);
-            mAdapter.setOnItemClickListener(this);
-            mRv.setAdapter(mAdapter);
-            mRv.setVisibility(View.VISIBLE);
+
+            List<Lead> list = getFilterLeads(leadList);
+
+            if(list.size()>0){
+                mAdapter = new LeadAdapterList(list);
+                mAdapter.setOnItemClickListener(this);
+                mRv.setAdapter(mAdapter);
+                mRv.setVisibility(View.VISIBLE);
+            }else{
+                mTxvMessage.setText(R.string.text_no_result);
+                mTxvMessage.setVisibility(View.VISIBLE);
+            }
         }else{
-            mTxvMessage.setText(R.string.no_leads_to_show);
+            mTxvMessage.setText(R.string.text_no_result);
             mTxvMessage.setVisibility(View.VISIBLE);
         }
+    }
+
+    /**
+     * This method help us to filter all the leads
+     * in the list
+     */
+    public List<Lead> getFilterLeads(List<Lead> leadList){
+        List<Lead> list = new ArrayList<>();
+        for (Lead lead : leadList){
+            if(lead.getName()!=null){
+                if(lead.getName().toLowerCase().contains(mQuery.toLowerCase())){
+                    list.add(lead);
+                }
+            }else{
+                if(lead.getCompany()!=null){
+                    if(lead.getCompany().toLowerCase().contains(mQuery.toLowerCase())){
+                        list.add(lead);
+                    }
+                }else{
+                    if(lead.getAddress()!=null){
+                        if(lead.getAddress().toLowerCase().contains(mQuery.toLowerCase())){
+                            list.add(lead);
+                        }
+                    }
+                }
+            }
+        }
+
+        return list;
     }
 
     @Override
@@ -204,9 +221,13 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
             checkPointData.setName(lead.getName());
             checkPointData.setCheckPointType(2);
 
-            //Here we start the check flow
-            startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),checkPointData),
-                    REQUEST_CHECK_IN);
+             /*Here we notify the result*/
+            Intent intent= new Intent();
+            intent.setAction(ACTION_SEARCH_RESULT);
+            intent.putExtra(MyLeadsActivity.ARG_CHECK_POINT_DATA,checkPointData);
+            sendBroadcast(intent);
+
+            finish();
         }else{
 
             new MaterialDialog.Builder(this)
@@ -224,15 +245,5 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
                     .cancelable(false)
                     .show();
         }
-    }
-
-    /**
-     * Here we start the check point flow
-     */
-    public void startCheckPointFlow(CheckPointData checkPointData){
-
-
-        startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),checkPointData),
-                REQUEST_CHECK_IN);
     }
 }

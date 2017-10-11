@@ -2,11 +2,13 @@ package com.app.checkinmap.util;
 
 import android.util.Log;
 
+import com.app.checkinmap.model.UserLocation;
 import com.salesforce.androidsdk.rest.RestClient;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
  * This class help us encapsulate
@@ -130,5 +132,59 @@ public class Utility {
      * This method set the user country*/
     public static void setUserCountry(String userCountry){
         mUserCountry = userCountry;
+    }
+
+    /**
+     * This method help us to get the current
+     * date with hours for route name
+     */
+    public static String getDateForName(){
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = new Date();
+        return "("+dateFormat.format(date)+")";
+    }
+
+    /**
+     * This method help us to get the current
+     * date with hours for route search
+     */
+    public static String getDateForSearch(){
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = new Date();
+        return dateFormat.format(date);
+    }
+
+    /**
+     * This method help us to get the time in hour
+     * for the visit
+     */
+    public static String getDurationInHours(String dateStart,String dateFinish){
+        String time ="";
+
+        //HH converts hour in 24 hours format (0-23), day calculation
+        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+
+        Date d1;
+        Date d2;
+
+        try {
+            d1 = format.parse(dateStart);
+            d2 = format.parse(dateFinish);
+
+            //in milliseconds
+            long diff = d2.getTime() - d1.getTime();
+
+           // long diffSeconds = diff / 1000 % 60;
+            long diffMinutes = diff / (60 * 1000) % 60;
+            long diffHours = diff / (60 * 60 * 1000) % 24;
+           // long diffDays = diff / (24 * 60 * 60 * 1000);
+
+            time = diffHours+" horas "+diffMinutes+" min";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return time;
     }
 }

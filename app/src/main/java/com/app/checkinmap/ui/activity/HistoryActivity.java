@@ -18,6 +18,7 @@ import com.app.checkinmap.db.DatabaseManager;
 import com.app.checkinmap.model.UserLocation;
 import com.app.checkinmap.ui.adapter.HistoryAdapterList;
 import com.app.checkinmap.util.PreferenceManager;
+import com.app.checkinmap.util.Utility;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -62,14 +63,8 @@ public class HistoryActivity extends AppCompatActivity {
 
         if(getSupportActionBar() != null){
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            if(PreferenceManager.getInstance(this).isSeller()){
-                getSupportActionBar().setTitle(R.string.completed_route);
-                mTxvTitle.setText(R.string.route_complete_information);
-            }else{
-                getSupportActionBar().setTitle(R.string.completed_order);
-                mTxvTitle.setText(R.string.work_order_complete);
-            }
-
+            getSupportActionBar().setTitle(R.string.completed_route);
+            mTxvTitle.setText(R.string.route_complete_information);
         }
 
 
@@ -77,7 +72,9 @@ public class HistoryActivity extends AppCompatActivity {
 
         mTvDistance.setText(getRoutDistance());
         mTvUsedTime.setText(getRouteTime());
-        mTvVisitNumber.setText(String.valueOf(DatabaseManager.getInstance().getCheckPointLocationList().size()));
+        mTvVisitNumber.setText(String.valueOf(DatabaseManager.getInstance().getCheckPointLocationList(
+                PreferenceManager.getInstance(this).getRouteId()
+        ).size()));
 
         mRv.setHasFixedSize(true);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
@@ -88,7 +85,7 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private List<UserLocation> getLocations(){
-        return DatabaseManager.getInstance().getUserLocationList();
+        return DatabaseManager.getInstance().getUserLocationList(PreferenceManager.getInstance(this).getRouteId());
     }
 
     @Override
@@ -170,7 +167,6 @@ public class HistoryActivity extends AppCompatActivity {
             }
 
         }
-
         return time;
     }
 }

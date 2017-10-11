@@ -22,13 +22,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.bus.BusProvider;
 import com.app.checkinmap.bus.NewLocationEvent;
+import com.app.checkinmap.db.DatabaseManager;
+import com.app.checkinmap.model.CheckPointLocation;
+import com.app.checkinmap.model.Route;
+import com.app.checkinmap.model.UserLocation;
 import com.app.checkinmap.service.LocationService;
+import com.app.checkinmap.util.ApiManager;
 import com.app.checkinmap.util.PreferenceManager;
 import com.app.checkinmap.util.Utility;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -46,13 +52,18 @@ import com.salesforce.androidsdk.app.SalesforceSDKManager;
 import com.salesforce.androidsdk.rest.RestClient;
 import com.squareup.otto.Subscribe;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.realm.Realm;
 
+import static com.app.checkinmap.ui.activity.CheckPointMapActivity.ARG_CHECK_POINT_LOCATION_ID;
 import static com.app.checkinmap.ui.activity.CheckPointMapActivity.PERMISSION_LOCATION_REQUEST;
 import static com.app.checkinmap.ui.activity.MyAccountsActivity.REQUEST_ACCOUNT_SELECTION;
 import static com.app.checkinmap.ui.activity.MyLeadsActivity.REQUEST_LEAD_SELECTION;
@@ -234,8 +245,14 @@ public class DashBoardActivity extends AppCompatActivity
         switch (requestCode){
             case REQUEST_ACCOUNT_SELECTION:
             case REQUEST_LEAD_SELECTION:
+            case REQUEST_WORK_ORDER_SELECTION:
                 if(resultCode == RESULT_OK){
-                    startActivity(HistoryActivity.getIntent(this));
+                   // startActivity(HistoryActivity.getIntent(this));
+                    long checkPointLocationId = data.getExtras().getLong(ARG_CHECK_POINT_LOCATION_ID);
+
+                    showSummaryVisitDialog(checkPointLocationId);
+
+                    //Toast.makeText(this,"Mostrar info para: "+checkPointLocationId,Toast.LENGTH_LONG).show();
                 }
                 break;
         }
@@ -259,17 +276,26 @@ public class DashBoardActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_my_information) {
+
             startActivity(MyInformationActivity.getIntent(this));
+
         } else if (id == R.id.nav_my_accounts) {
+
             startActivityForResult(MyAccountsActivity.getIntent(this), REQUEST_ACCOUNT_SELECTION);
+
         } else if (id == R.id.nav_candidates) {
+
             startActivityForResult(MyLeadsActivity.getIntent(this), REQUEST_LEAD_SELECTION);
+
         }else if (id == R.id.nav_my_orders) {
+
             startActivityForResult(MyOrderWorksActivity.getIntent(this),REQUEST_WORK_ORDER_SELECTION);
+
         }  else if (id == R.id.nav_sync) {
 
         } else if (id == R.id.nav_exit) {
-            SalesforceSDKManager.getInstance().logout(this);
+
+            closeSession();
         }
 
         mDrawerLayout.closeDrawer(GravityCompat.START);
@@ -279,15 +305,11 @@ public class DashBoardActivity extends AppCompatActivity
     @OnClick(R.id.button_start_rout)
     public void startRoute(){
        if(isInRoute()){
-          // stopLocationService();
-           PreferenceManager.getInstance(this).setIsInRoute(false);
-           updateButtonUi();
+           updateRouteDate();
        }else{
            if(checkAndRequestPermissions()){
                if(isGpsEnable()){
-                   //startLocationService();
-                   PreferenceManager.getInstance(this).setIsInRoute(true);
-                   updateButtonUi();
+                   createRoute();
                }else{
                    showGpsDisableMessage();
                }
@@ -295,6 +317,95 @@ public class DashBoardActivity extends AppCompatActivity
        }
     }
 
+    /**
+     * This method help us to create the route instance
+     */
+    public void createRoute(){
+
+        /*Here we update the ui*/
+        mTxvRouteButton.setVisibility(View.GONE);
+        mLnlProgress.setVisibility(View.VISIBLE);
+
+        String osql = "SELECT Radio_Check_In__c FROM Aplicacion_Movil_EMASAL__c WHERE name = 'config'";
+
+        ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
+            @Override
+            public void onObject(boolean success, JSONObject jsonObject, String errorMessage) {
+                mLnlProgress.setVisibility(View.GONE);
+                if(success){
+                    try {
+                        final int radius = jsonObject.getJSONArray("records").getJSONObject(0).getInt("Radio_Check_In__c");
+                        Realm realm = null;
+                        try{
+                            realm = Realm.getDefaultInstance();
+                            realm.executeTransaction(new Realm.Transaction(){
+                                @Override
+                                public void execute(Realm realm) {
+
+                                    Route route = new Route();
+                                    route.setId(System.currentTimeMillis());
+
+                                    String name = Utility.getDateForName()+"-"+Utility.getRestClient().getClientInfo().username+
+                                            "-"+ DatabaseManager.getInstance().getCorrelativeRoute(Utility.getDateForSearch());
+                                    route.setName(name);
+                                    route.setStartDate(Utility.getCurrentDate());
+                                    route.setUserId(Utility.getRestClient().getClientInfo().userId);
+                                    route.setTypeId(Utility.getUserProfileId());
+
+                                    realm.copyToRealmOrUpdate(route);
+
+                                    PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(true);
+                                    PreferenceManager.getInstance(getApplicationContext()).setRadius(radius);
+                                    PreferenceManager.getInstance(getApplicationContext()).setRouteId(route.getId());
+                                    mTxvRouteButton.setVisibility(View.VISIBLE);
+                                    updateButtonUi();
+                                    Log.d("REALM", "ROUTE SUCCESS");
+                                    Log.d("ROUTE NAME", name);
+                                }
+                            });
+                        }catch(Exception e){
+                            Log.d("REALM ERROR", e.toString());
+                            mTxvRouteButton.setVisibility(View.VISIBLE);
+                            updateButtonUi();
+                            showMessage(R.string.text_no_route_created);
+                        }finally {
+                            if(realm != null){
+                                realm.close();
+                            }
+                        }
+                    } catch (JSONException e) {
+                        //e.printStackTrace();
+                        mTxvRouteButton.setVisibility(View.VISIBLE);
+                        updateButtonUi();
+                        showMessage(R.string.text_no_radius);
+                    }
+                }else{
+                    mTxvRouteButton.setVisibility(View.VISIBLE);
+                    updateButtonUi();
+                    showMessage(R.string.text_no_radius);
+                }
+            }
+        });
+    }
+
+    /**
+     * This method help use to show a message
+     */
+    public void showMessage(int message){
+        new MaterialDialog.Builder(this)
+                .title(R.string.app_name)
+                .content(message)
+                .positiveColorRes(R.color.colorPrimary)
+                .positiveText(R.string.accept)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss();
+                    }
+                })
+                .cancelable(false)
+                .show();
+    }
 
     /**
      * This method check if the app has all the
@@ -494,4 +605,144 @@ public class DashBoardActivity extends AppCompatActivity
               mTxvRouteButton.setBackgroundColor(getResources().getColor(R.color.colorBlue));
           }
       }
+
+       /**
+        * This method help us to show a message
+        * with an overview about the last visit
+       */
+       public void  showSummaryVisitDialog(long checkPointLocationId){
+           CheckPointLocation checkPointLocation = DatabaseManager.getInstance().getCheckPointLocation(checkPointLocationId);
+           TextView  visitTime;
+           TextView  visitTypeLabel;
+           TextView  visitType;
+           TextView  visitTypeDescriptionLabel;
+           TextView  visitTypeDescription;
+           TextView  contactName;
+
+           MaterialDialog dialog = new MaterialDialog.Builder(this)
+                   .titleColorRes(R.color.colorPrimary)
+                   .title(R.string.text_visit_overview)
+                   .customView(R.layout.dialog_visit_summary,true)
+                   .positiveColorRes(R.color.colorPrimary)
+                   .positiveText(R.string.accept)
+                   .onPositive(new MaterialDialog.SingleButtonCallback() {
+                       @Override
+                       public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                           dialog.dismiss();
+                       }
+                   }).cancelable(false)
+                   .build();
+
+           /*Here we get reference to the layout widgets*/
+           View dialogView = dialog.getCustomView();
+           visitTime= dialogView.findViewById(R.id.text_view_visit_time);
+           visitTypeLabel= dialogView.findViewById(R.id.text_view_visit_type_label);
+           visitType = dialogView.findViewById(R.id.text_view_visit_type);
+           visitTypeDescriptionLabel = dialogView.findViewById(R.id.text_view_visit_description_label);
+           visitTypeDescription = dialogView.findViewById(R.id.text_view_visit_description);
+           contactName = dialogView.findViewById(R.id.text_view_contact);
+
+           switch (checkPointLocation.getRecordType()){
+               case "0126A000000l3CuQAI":
+                   visitTime.setText(checkPointLocation.getVisitTime());
+                   visitType.setText(checkPointLocation.getVisitType());
+                   visitTypeDescription.setText(checkPointLocation.getDescription());
+                   contactName.setText(checkPointLocation.getAccountContactName());
+                   break;
+               case "0126A000000l3CzQAI":
+                   visitTime.setText(checkPointLocation.getVisitTime());
+                   visitType.setText(checkPointLocation.getVisitType());
+                   visitTypeDescription.setText(checkPointLocation.getDescription());
+                   contactName.setText(checkPointLocation.getAccountContactName());
+                   break;
+               case "0126A000000l3D4QAI":
+                   visitTime.setText(checkPointLocation.getVisitTime());
+                   visitType.setVisibility(View.GONE);
+                   visitTypeLabel.setVisibility(View.GONE);
+                   visitTypeDescriptionLabel.setVisibility(View.GONE);
+                   visitTypeDescription.setVisibility(View.GONE);
+                   contactName.setText(checkPointLocation.getAccountContactName());
+                   break;
+           }
+
+           dialog.show();
+       }
+
+    /**
+     * This method help us to update the  finalize
+     * route date and close the route
+     */
+    public void updateRouteDate() {
+        Realm realm = Realm.getDefaultInstance();
+        try {
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    Route toEdit = realm.where(Route.class)
+                            .equalTo("id", PreferenceManager.getInstance(getApplicationContext()).getRouteId()).findFirst();
+                    toEdit.setEndDate(Utility.getCurrentDate());
+                    realm.copyToRealmOrUpdate(toEdit);
+                    PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(false);
+                    updateButtonUi();
+                    callHistoryActivity();
+                    Log.d("REALM"," actualizada");
+                }
+            });
+        }catch (Exception e){
+            showMessage(R.string.text_no_route_finalize);
+        }finally {
+            if(realm!=null){
+                realm.close();
+            }
+        }
+    }
+
+    /**
+     * Here we show all the data about
+     * the route
+     */
+    public void callHistoryActivity(){
+        startActivity(HistoryActivity.getIntent(this));
+    }
+
+    /**
+     * This method help us to close
+     * the current session
+     */
+    public void closeSession(){
+        if(!PreferenceManager.getInstance(this).isInRoute()){
+            new MaterialDialog.Builder(this)
+                    .title(R.string.app_name)
+                    .content(R.string.text_close_session)
+                    .positiveColorRes(R.color.colorPrimary)
+                    .positiveText(R.string.accept)
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                            closeSalesForce();
+                            dialog.dismiss();
+                        }
+                    })
+                    .negativeColorRes(R.color.colorPrimary)
+                    .negativeText(R.string.cancel)
+                    .onNegative(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .cancelable(false)
+                    .show();
+        }else{
+            showMessage(R.string.text_close_route_to_finalize);
+        }
+    }
+
+    /**
+     * This method close the sales force
+     * session
+     */
+    public void closeSalesForce(){
+        SalesforceSDKManager.getInstance().logout(this);
+    }
 }

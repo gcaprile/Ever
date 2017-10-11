@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.app.checkinmap.ui.activity.MyOrderWorksActivity">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rcv_work_orders"
+        android:layout_width="match_parent"
+        android:visibility="gone"
+        android:layout_height="match_parent"/>
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateTint="@color/colorPrimary"
+        android:layout_gravity="center"/>
+
+    <TextView
+        android:id="@+id/text_view_message"
+        android:layout_width="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_gravity="center"
+        tools:text="Error message"
+        android:visibility="gone"
+        android:textStyle="bold"
+        android:layout_height="wrap_content" />
+
+</FrameLayout>

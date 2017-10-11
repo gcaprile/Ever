@@ -33,7 +33,7 @@
 
 
             <TextView
-                android:id="@+id/text_view_user_name"
+                android:id="@+id/text_view_display_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 tools:text="Android Studio"
@@ -51,24 +51,24 @@
     </LinearLayout>
 
     <TextView
-        android:id="@+id/text_view_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="10dp"
-        android:text="@string/lorem_ipsum_title"
+        android:text="@string/user_name"
         android:textColor="@color/colorPrimary"
         android:textStyle="bold" />
 
     <TextView
+        android:id="@+id/text_view_user_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:layout_marginEnd="20dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="10dp"
-        android:text="@string/lorem_ipsum" />
+        tools:text="Nombre de usuario" />
 
     <TextView
         android:layout_width="match_parent"
@@ -76,36 +76,18 @@
         android:layout_marginEnd="20dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="10dp"
-        android:text="@string/lorem_ipsum_title"
+        android:text="@string/account_name"
         android:textColor="@color/colorPrimary"
         android:textStyle="bold" />
 
     <TextView
+        android:id="@+id/text_view_account_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:layout_marginEnd="20dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="10dp"
-        android:text="@string/lorem_ipsum" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="20dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="10dp"
-        android:text="@string/lorem_ipsum_title"
-        android:textColor="@color/colorPrimary"
-        android:textStyle="bold" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="10dp"
-        android:text="@string/lorem_ipsum" />
+        tools:text="Nombre de la cuenta" />
 
 </LinearLayout>

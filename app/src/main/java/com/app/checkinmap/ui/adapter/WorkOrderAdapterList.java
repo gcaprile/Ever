@@ -42,9 +42,16 @@ public class WorkOrderAdapterList extends RecyclerView.Adapter<WorkOrderAdapterL
 
     @Override
     public void onBindViewHolder(WorkOrderViewHolder holder, int position) {
-        holder.tvTitle.setText(mWorkOrderList.get(position).getWorkOrderNumber());
-        holder.tvSubTitle.setText(mWorkOrderList.get(position).getStatus());
-        holder.tvDescription.setText(mWorkOrderList.get(position).getDescription());
+        if(mWorkOrderList.get(position).getCountry()!=null){
+            holder.tvWorkOrderNumber.setText(mWorkOrderList.get(position).getWorkOrderNumber()
+            +"-"+mWorkOrderList.get(position).getCountry());
+        }else{
+            holder.tvWorkOrderNumber.setText(mWorkOrderList.get(position).getWorkOrderNumber());
+        }
+        holder.tvStatus.setText(mWorkOrderList.get(position).getStatus());
+        holder.tvAccountContact.setText(mWorkOrderList.get(position).getContactName());
+        holder.tvAccountName.setText(mWorkOrderList.get(position).getAccountName());
+        holder.tvAddress.setText(mWorkOrderList.get(position).getAddressDetail());
     }
 
     @Override
@@ -56,14 +63,20 @@ public class WorkOrderAdapterList extends RecyclerView.Adapter<WorkOrderAdapterL
 
     class WorkOrderViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
-        @BindView(R.id.text_view_title)
-        TextView tvTitle;
+        @BindView(R.id.text_view_work_order)
+        TextView tvWorkOrderNumber;
 
-        @BindView(R.id.text_view_sub_title)
-        TextView tvSubTitle;
+        @BindView(R.id.text_view_status)
+        TextView tvStatus;
 
-        @BindView(R.id.text_view_description)
-        TextView tvDescription;
+        @BindView(R.id.text_view_account_contact)
+        TextView tvAccountContact;
+
+        @BindView(R.id.text_view_account_name)
+        TextView tvAccountName;
+
+        @BindView(R.id.text_view_address)
+        TextView tvAddress;
 
         WorkOrderViewHolder(View view){
             super(view);

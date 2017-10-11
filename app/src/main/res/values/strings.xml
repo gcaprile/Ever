@@ -18,6 +18,7 @@
     <string name="connected_like_sales_person">Conectado como vendedor</string>
     <string name="connected_like_technical">Conectado como técnico</string>
     <string name="getting_your_location">Obteniendo su ubicación&#8230;</string>
+    <string name="please_wait">Por favor espere&#8230;</string>
 
     <!-- MAP ACTIVITY STRINGS-->
     <string name="title_activity_check_in_map">Emasal</string>
@@ -59,6 +60,8 @@
     <string name="completed_route">Ruta completada</string>
     <string name="completed_order">Orden de trabajo completada</string>
     <string name="check_rol_explanation">Para cambiar de rol debe finalizar la ruta</string>
+    <string name="user_name">Nombre de usuario</string>
+    <string name="account_name">Nombre de la cuenta</string>
 
 
     <string name="welcome">Welcome %s</string>
@@ -90,13 +93,27 @@
     <string name="no_contacts_available">La cuenta no posee contactos</string>
     <string name="contact_list_no_got">No fue posible obtener la lista de contactos</string>
     <string name="visit_description">Descripción de visita</string>
-    <string name="visit_description_message">Describa o comenta la visita realizada</string>
+    <string name="visit_description_message">Describa o comente la visita realizada</string>
     <string name="text_description">Descripción</string>
     <string name="no_description_typed">Olvidó describir o comentar la visita para finalizar</string>
     <string name="no_leads_to_show">No existen clientes potenciales para mostrar</string>
     <string name="no_contacts_to_show">No existen cuentas para mostrar</string>
     <string name="no_work_orders_to_show">No existen ordenes de trabajo para mostrar</string>
     <string name="technical_main_check_fail">No fue posible verificar quien es el técnico principal de la orden de trabajo seleccionada</string>
+    <string name="text_search">Digite su búsqueda</string>
+    <string name="text_no_result">Sin resultados para mostrar</string>
+    <string name="text_result">Resultados</string>
+    <string name="text_clear">Limpiar</string>
+    <string name="text_no_radius">No fue posible obtener la configuración del radio de validación</string>
+    <string name="text_no_route_created">La ruta no pudo ser creada</string>
+    <string name="text_no_route_finalize">La ruta no pudo ser finalizada</string>
+    <string name="text_visit_overview">Resumen de visita</string>
+    <string name="text_visit_time">Tiempo de visita</string>
+    <string name="text_visit_type">Tipo de visita</string>
+    <string name="text_visit_description">Comentarios</string>
+    <string name="text_contact">Contacto visitado</string>
+    <string name="text_close_route_to_finalize">Debe finalizar la ruta para cerrar sesión</string>
+    <string name="text_close_session">¿Realmente desea finalizar su sesión?</string>
 
     <string-array name="visit_type">
         <item>Seguimiento</item>

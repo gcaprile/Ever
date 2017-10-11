@@ -20,6 +20,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.model.Account;
 import com.app.checkinmap.model.AccountAddress;
+import com.app.checkinmap.model.CheckPointData;
 import com.app.checkinmap.ui.adapter.AddressAdapterList;
 import com.app.checkinmap.util.ApiManager;
 import com.app.checkinmap.util.PreferenceManager;
@@ -111,7 +112,7 @@ public class AccountDetailActivity extends AppCompatActivity implements AddressA
         switch (requestCode){
             case REQUEST_CHECK_IN:
                 if(resultCode ==  RESULT_OK){
-                    setResult(RESULT_OK);
+                    setResult(RESULT_OK,data);
                     finish();
                 }
                 break;
@@ -183,7 +184,17 @@ public class AccountDetailActivity extends AppCompatActivity implements AddressA
     public void onItemClick(AccountAddress accountAddress) {
 
         if(PreferenceManager.getInstance(this).isInRoute()){
-            startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),1,mAccount.getName(),accountAddress),
+
+            /*Here we create the check point data*/
+            CheckPointData checkPointData = new CheckPointData();
+            checkPointData.setId(accountAddress.getAccountId());
+            checkPointData.setName(mAccount.getName());
+            checkPointData.setLatitude(accountAddress.getLatitude());
+            checkPointData.setLongitude(accountAddress.getLongitude());
+            checkPointData.setAddressId(accountAddress.getId());
+            checkPointData.setCheckPointType(1);
+
+            startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),checkPointData),
                     REQUEST_CHECK_IN);
         }else{
 

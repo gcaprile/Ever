@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatButton;
+import android.widget.TextView;
 
 import com.app.checkinmap.R;
 import com.simplify.ink.InkView;
@@ -14,7 +15,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class SignatureActivity extends AppCompatActivity {
-    public static String   ARG_SELECTION="selection";
+    public static String   ARG_NAME="name";
 
     @BindView(R.id.button_check)
     AppCompatButton mBtnCheckOut;
@@ -26,9 +27,9 @@ public class SignatureActivity extends AppCompatActivity {
      * This method help us to get a single signature activity
      * intent
      */
-    public static Intent getIntent(Context context,String selection){
+    public static Intent getIntent(Context context,String name){
         Intent intent = new Intent(context,SignatureActivity.class);
-        intent.putExtra(ARG_SELECTION,selection);
+        intent.putExtra(ARG_NAME,name);
         return intent;
     }
 
@@ -41,7 +42,7 @@ public class SignatureActivity extends AppCompatActivity {
 
         if(getSupportActionBar()!=null){
             getSupportActionBar().setHomeButtonEnabled(false);
-            getSupportActionBar().setTitle(getIntent().getExtras().getString(ARG_SELECTION));
+            getSupportActionBar().setTitle(getIntent().getExtras().getString(ARG_NAME));
         }
 
         mInkView.setColor(getResources().getColor(android.R.color.black));
@@ -53,5 +54,10 @@ public class SignatureActivity extends AppCompatActivity {
     public void checkOut(){
         setResult(RESULT_OK);
         finish();
+    }
+
+    @OnClick(R.id.text_view_clear)
+    public void clearInkView(){
+        mInkView.clear();
     }
 }

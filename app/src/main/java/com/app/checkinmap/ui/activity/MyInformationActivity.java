@@ -15,11 +15,18 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MyInformationActivity extends AppCompatActivity {
-    @BindView(R.id.text_view_user_name)
-    TextView mTxvUserName;
+    @BindView(R.id.text_view_display_name)
+    TextView mTxvDisplayName;
 
     @BindView(R.id.text_view_email)
     TextView mTxvEmail;
+
+    @BindView(R.id.text_view_user_name)
+    TextView mTxvUserName;
+
+
+    @BindView(R.id.text_view_account_name)
+    TextView mTxvAccountName;
 
     /**
      * This method help us to get a single
@@ -43,8 +50,10 @@ public class MyInformationActivity extends AppCompatActivity {
         }
 
         RestClient.ClientInfo ci = Utility.getRestClient().getClientInfo();
-        mTxvUserName.setText(ci.displayName);
+        mTxvDisplayName.setText(ci.displayName);
         mTxvEmail.setText(ci.email);
+        mTxvUserName.setText(ci.username);
+        mTxvAccountName.setText(ci.accountName);
 
     }
 

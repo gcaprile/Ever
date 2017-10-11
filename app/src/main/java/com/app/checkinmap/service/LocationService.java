@@ -132,6 +132,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
                     userLocation.setLatitude(location.getLatitude());
                     userLocation.setLongitude(location.getLongitude());
                     userLocation.setDate(Utility.getCurrentDate());
+                    userLocation.setRouteId(PreferenceManager.getInstance(getApplicationContext()).getRouteId());
                     realm.copyToRealmOrUpdate(userLocation);
                     Log.d("REALM", "SUCCESS");
                 }

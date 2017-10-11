@@ -10,13 +10,28 @@ import com.google.gson.annotations.SerializedName;
  * about work orders
  */
 
-public class WorkOrder implements Parcelable{
+public class WorkOrder  implements Parcelable{
 
     @SerializedName("Id")
     private String mId;
 
     @SerializedName("WorkOrderNumber")
     private String mWorkOrderNumber;
+
+    @SerializedName("Country")
+    private String mCountry;
+
+    @SerializedName("Cuenta_del__c")
+    private String mAccountName;
+
+    @SerializedName("Contacto__c")
+    private String mContactName;
+
+    @SerializedName("Detalle_Direccion__c")
+    private String mAddressDetail;
+
+    @SerializedName("Direccion_Visita__c")
+    private String mAddressId;
 
     @SerializedName("AccountId")
     private String mAccountId;
@@ -30,48 +45,22 @@ public class WorkOrder implements Parcelable{
     @SerializedName("Longitude")
     private double mLongitude;
 
-    @SerializedName("Description")
-    private String mDescription;
-
-    @SerializedName("StartDate")
-    private String mStartDate;
-
-    @SerializedName("EndDate")
-    private String mEndDate;
-
     @SerializedName("Status")
     private String mStatus;
 
     protected WorkOrder(Parcel in) {
         mId = in.readString();
         mWorkOrderNumber = in.readString();
+        mCountry = in.readString();
+        mAccountName = in.readString();
+        mContactName = in.readString();
+        mAddressDetail = in.readString();
+        mAddressId = in.readString();
         mAccountId = in.readString();
         mContactId = in.readString();
         mLatitude = in.readDouble();
         mLongitude = in.readDouble();
-        mDescription = in.readString();
-        mStartDate = in.readString();
-        mEndDate = in.readString();
         mStatus = in.readString();
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mId);
-        dest.writeString(mWorkOrderNumber);
-        dest.writeString(mAccountId);
-        dest.writeString(mContactId);
-        dest.writeDouble(mLatitude);
-        dest.writeDouble(mLongitude);
-        dest.writeString(mDescription);
-        dest.writeString(mStartDate);
-        dest.writeString(mEndDate);
-        dest.writeString(mStatus);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
     }
 
     public static final Creator<WorkOrder> CREATOR = new Creator<WorkOrder>() {
@@ -100,6 +89,46 @@ public class WorkOrder implements Parcelable{
 
     public void setWorkOrderNumber(String workOrderNumber) {
         this.mWorkOrderNumber = workOrderNumber;
+    }
+
+    public String getCountry() {
+        return mCountry;
+    }
+
+    public void setCountry(String country) {
+        this.mCountry = country;
+    }
+
+    public String getAccountName() {
+        return mAccountName;
+    }
+
+    public void setAccountName(String accountName) {
+        this.mAccountName = accountName;
+    }
+
+    public String getContactName() {
+        return mContactName;
+    }
+
+    public void setContactName(String contactName) {
+        this.mContactName = contactName;
+    }
+
+    public String getAddressDetail() {
+        return mAddressDetail;
+    }
+
+    public void setAddressDetail(String addressDetail) {
+        this.mAddressDetail = addressDetail;
+    }
+
+    public String getAddressId() {
+        return mAddressId;
+    }
+
+    public void setAddressId(String addressId) {
+        this.mAddressId = addressId;
     }
 
     public String getAccountId() {
@@ -134,30 +163,6 @@ public class WorkOrder implements Parcelable{
         this.mLongitude = longitude;
     }
 
-    public String getDescription() {
-        return mDescription;
-    }
-
-    public void setDescription(String description) {
-        this.mDescription = description;
-    }
-
-    public String getStartDate() {
-        return mStartDate;
-    }
-
-    public void setStartDate(String startDate) {
-        this.mStartDate = startDate;
-    }
-
-    public String getEndDate() {
-        return mEndDate;
-    }
-
-    public void setEndDate(String endDate) {
-        this.mEndDate = endDate;
-    }
-
     public String getStatus() {
         return mStatus;
     }
@@ -167,4 +172,24 @@ public class WorkOrder implements Parcelable{
     }
 
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(mId);
+        parcel.writeString(mWorkOrderNumber);
+        parcel.writeString(mCountry);
+        parcel.writeString(mAccountName);
+        parcel.writeString(mContactName);
+        parcel.writeString(mAddressDetail);
+        parcel.writeString(mAddressId);
+        parcel.writeString(mAccountId);
+        parcel.writeString(mContactId);
+        parcel.writeDouble(mLatitude);
+        parcel.writeDouble(mLongitude);
+        parcel.writeString(mStatus);
+    }
 }
