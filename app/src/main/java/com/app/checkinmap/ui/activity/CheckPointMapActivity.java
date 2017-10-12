@@ -220,7 +220,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
         switch (requestCode){
             case SIGNATURE_REQUEST:
                 if(resultCode==RESULT_OK){
-                    showCheckInFinalizeMessage();
+                   getUserLocationToFinalize();
                 }
                 break;
         }
@@ -255,11 +255,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
     @OnClick(R.id.button_check)
     public void checkUserLocation(){
         if(mIsChecking){
-            if(mCheckPointData.getCheckPointType() ==3){
-                checkSingActivity();
-            }else{
-                showCommentDialog();
-            }
+            showCheckInFinalizeMessage();
         }else{
             mIsChecking = true;
             mBtnCheck.setVisibility(View.GONE);
@@ -435,10 +431,12 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        /*Here we request the user location to finalize the check*/
-                        mIsChecking=false;
-                        getUserLocation();
-                        dialog.dismiss();
+
+                        if(mCheckPointData.getCheckPointType() ==3){
+                            checkSingActivity();
+                        }else{
+                            showCommentDialog();
+                        }
                     }
                 })
                 .negativeColorRes(R.color.colorPrimary)
@@ -676,17 +674,23 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
 
 
             /*Here we update the address location*/
-            if(mCheckPointData.getLatitude()==0 && mCheckPointData.getLongitude()==0){
+            if(mCheckPointData.getAddress().isEmpty()){
+                if(mCheckPointData.getLatitude()==0 && mCheckPointData.getLongitude()==0){
 
-                mCheckPointData.setLatitude(userLatitude);
-                mCheckPointData.setLongitude(userLongitude);
+                    mCheckPointData.setLatitude(userLatitude);
+                    mCheckPointData.setLongitude(userLongitude);
 
-                mNoAddressLocation=true;
+                    mNoAddressLocation=true;
 
-                 /*Here we show an explanation*/
-                showMessage(R.string.no_address_description);
-
+                    /*Here we show an explanation*/
+                    if(mCheckPointData.getCheckPointType()==2){
+                        showMessage(R.string.no_address_description_leads);
+                    }else{
+                        showMessage(R.string.no_address_description);
+                    }
+                }
             }
+
 
             if(mNoAddressLocation){
 
@@ -764,7 +768,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
     public void getContactList(){
 
         String osql="SELECT Id, Name, Phone, MobilePhone, Email, Department, AccountId, " +
-                "Tipo_de_contacto__c FROM Contact WHERE AccountId = '"+mCheckPointData.getId()+"'";
+                "Tipo_de_contacto__c FROM Contact WHERE AccountId = '"+mCheckPointData.getId()+"' ORDER BY Id";
 
         ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
             @Override
@@ -867,11 +871,9 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                     public void onInput(MaterialDialog dialog, CharSequence input) {
 
                        if(input.toString().compareTo("")!=0){
-
                            /*Here we set the description*/
                            mCheckPointLocation.setDescription(input.toString());
-
-                           checkSingActivity();
+                           getUserLocationToFinalize();
                        }else{
                          showMessage(R.string.no_description_typed);
                        }
@@ -887,14 +889,21 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
      */
     public void checkSingActivity(){
          /*Here we check if we have to get the signature*/
-        if(Utility.getUserRole() == Utility.Roles.SELLER){
-            showCheckInFinalizeMessage();
+        if(mCheckPointData.isIsMainTechnical()){
+            startActivityForResult(SignatureActivity.getIntent(getApplicationContext(),mCheckPointData.getName()),SIGNATURE_REQUEST);
         }else{
-            if(mCheckPointData.isIsMainTechnical()){
-                startActivityForResult(SignatureActivity.getIntent(getApplicationContext(),mCheckPointData.getName()),SIGNATURE_REQUEST);
-            }else{
-                showCheckInFinalizeMessage();
-            }
+          getUserLocationToFinalize();
         }
+    }
+
+
+    /**
+     * This method help us to get the user
+     * location to finalize the check out
+     */
+    public void getUserLocationToFinalize(){
+        /*Here we request the user location to finalize the check*/
+        mIsChecking=false;
+        getUserLocation();
     }
 }

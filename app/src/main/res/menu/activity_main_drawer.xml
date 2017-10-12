@@ -6,6 +6,13 @@
             android:id="@+id/nav_my_information"
             android:icon="@drawable/ic_menu_info"
             android:title="@string/my_information" />
+
+        <item
+            android:id="@+id/nav_candidates"
+            android:icon="@drawable/ic_menu_group"
+            android:visible="false"
+            android:title="@string/candidates" />
+
         <item
             android:id="@+id/nav_my_accounts"
             android:icon="@drawable/ic_menu_group"
@@ -19,14 +26,9 @@
             android:title="@string/my_orders" />
 
         <item
-            android:id="@+id/nav_candidates"
-            android:icon="@drawable/ic_menu_group"
-            android:visible="false"
-            android:title="@string/candidates" />
-
-        <item
             android:id="@+id/nav_sync"
             android:icon="@drawable/ic_menu_sync"
+            android:visible="false"
             android:title="@string/sync" />
         <item
             android:id="@+id/nav_exit"

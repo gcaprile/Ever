@@ -163,7 +163,7 @@ public class MyOrderWorksActivity extends AppCompatActivity implements WorkOrder
 
        String osql = "SELECT Id, WorkOrderNumber, Country, Latitude, Longitude, " +
                "Cuenta_del__c, Contacto__c, status, Detalle_Direccion__c, AccountId, ContactID, Direccion_Visita__c " +
-               "FROM WorkOrder";
+               "FROM WorkOrder ORDER BY WorkOrderNumber";
 
         ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
             @Override
@@ -171,7 +171,9 @@ public class MyOrderWorksActivity extends AppCompatActivity implements WorkOrder
                 /*Here we hide the progress bar*/
                 mPgBar.setVisibility(View.GONE);
                 if(success){
-                    //Utility.logLargeString(jsonObject.toString());
+
+                    Utility.logLargeString(jsonObject.toString());
+
                     try {
                         Type listType = new TypeToken<List<WorkOrder>>() {}.getType();
                         List<WorkOrder> workOrderList = new Gson().fromJson(jsonObject.getJSONArray("records").toString(), listType);
@@ -244,8 +246,14 @@ public class MyOrderWorksActivity extends AppCompatActivity implements WorkOrder
                         checkPointData.setLatitude(workOrder.getLatitude());
                         checkPointData.setLongitude(workOrder.getLongitude());
                         checkPointData.setContactId(workOrder.getContactId());
-                        checkPointData.setCheckPointType(3);
                         checkPointData.setName(workOrder.getContactName());
+                        if(workOrder.getAddressDetail()!=null){
+                            checkPointData.setAddress(workOrder.getAddressDetail());
+                        }else{
+                            checkPointData.setAddress("");
+                        }
+                        checkPointData.setCheckPointType(3);
+
 
                         if(workOrder.getCountry()!=null){
                             checkPointData.setName(workOrder.getWorkOrderNumber()+"-"+workOrder.getCountry());

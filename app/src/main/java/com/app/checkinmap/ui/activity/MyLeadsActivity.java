@@ -127,8 +127,8 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
      * sales force
      */
     public void getLeadFromSalesForce(){
-        String osql = "SELECT Id, Name, Company, Pais__c, Latitude, Longitude," +
-                "Phone, Website, Email, Description FROM Lead WHERE Pais__c = '"+Utility.getUserCountry()+"'";
+        String osql = "SELECT Id, Name, Company, Street, City, State, PostalCode, Country, Pais__c, Latitude, Longitude" +
+                " FROM Lead WHERE Pais__c = '"+Utility.getUserCountry()+"'";
 
         ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
             @Override
@@ -203,6 +203,11 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
             checkPointData.setLongitude(lead.getLongitude());
             checkPointData.setName(lead.getName());
             checkPointData.setCheckPointType(2);
+            if(lead.getAddress()!=null){
+                checkPointData.setAddress(lead.getAddress());
+            }else{
+                checkPointData.setAddress("");
+            }
 
             //Here we start the check flow
             startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),checkPointData),

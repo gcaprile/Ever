@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -81,6 +82,8 @@ public class SearchableAccountsActivity extends AppCompatActivity implements Acc
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
 
             mQuery = intent.getStringExtra(SearchManager.QUERY);
+
+            Log.d("Busqueda",mQuery);
 
             mRv.setHasFixedSize(true);
             LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
@@ -174,6 +177,7 @@ public class SearchableAccountsActivity extends AppCompatActivity implements Acc
                 mRv.setVisibility(View.VISIBLE);
             }else{
                 mTxvMessage.setText(R.string.text_no_result);
+                mTxvMessage.setVisibility(View.VISIBLE);
             }
         }else{
             mTxvMessage.setText(R.string.text_no_result);
@@ -188,9 +192,16 @@ public class SearchableAccountsActivity extends AppCompatActivity implements Acc
     public List<Account> getFilterAccounts(List<Account> accountList){
         List<Account> list = new ArrayList<>();
         for(Account account : accountList){
+
             if(account.getName()!=null){
                 if(account.getName().toLowerCase().contains(mQuery.toLowerCase())){
                     list.add(account);
+                }else{
+                    if(account.getAddress()!=null){
+                        if(account.getAddress().toLowerCase().contains(mQuery.toLowerCase())){
+                            list.add(account);
+                        }
+                    }
                 }
             }else{
                 if(account.getAddress()!=null){

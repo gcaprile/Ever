@@ -11,6 +11,7 @@ import com.google.gson.annotations.SerializedName;
  */
 
 public class Lead implements Parcelable{
+
     @SerializedName("Id")
     private String mId;
 
@@ -19,6 +20,18 @@ public class Lead implements Parcelable{
 
     @SerializedName("Company")
     private String mCompany;
+
+    @SerializedName("Street")
+    private String mStreet;
+
+    @SerializedName("City")
+    private String mCity;
+
+    @SerializedName("State")
+    private String mState;
+
+    @SerializedName("PostalCode")
+    private String mPostalCode;
 
     @SerializedName("Country")
     private String mCountry;
@@ -29,34 +42,17 @@ public class Lead implements Parcelable{
     @SerializedName("Longitude")
     private double mLongitude;
 
-    @SerializedName("Address")
-    private String mAddress;
-
-    @SerializedName("Phone")
-    private String mPhone;
-
-    @SerializedName("Website")
-    private String mWebsite;
-
-    @SerializedName("Email")
-    private String mEmail;
-
-    @SerializedName("Description")
-    private String mDescription;
-
-
     protected Lead(Parcel in) {
         mId = in.readString();
         mName = in.readString();
         mCompany = in.readString();
+        mStreet = in.readString();
+        mCity = in.readString();
+        mState = in.readString();
+        mPostalCode = in.readString();
         mCountry = in.readString();
         mLatitude = in.readDouble();
         mLongitude = in.readDouble();
-        mAddress = in.readString();
-        mPhone = in.readString();
-        mWebsite = in.readString();
-        mEmail = in.readString();
-        mDescription = in.readString();
     }
 
     public static final Creator<Lead> CREATOR = new Creator<Lead>() {
@@ -71,12 +67,31 @@ public class Lead implements Parcelable{
         }
     };
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(mId);
+        parcel.writeString(mName);
+        parcel.writeString(mCompany);
+        parcel.writeString(mStreet);
+        parcel.writeString(mCity);
+        parcel.writeString(mState);
+        parcel.writeString(mPostalCode);
+        parcel.writeString(mCountry);
+        parcel.writeDouble(mLatitude);
+        parcel.writeDouble(mLongitude);
+    }
+
     public String getId() {
         return mId;
     }
 
-    public void setId(String id) {
-        this.mId = id;
+    public void setId(String mId) {
+        this.mId = mId;
     }
 
     public String getName() {
@@ -93,6 +108,38 @@ public class Lead implements Parcelable{
 
     public void setCompany(String company) {
         this.mCompany = company;
+    }
+
+    public String getStreet() {
+        return mStreet;
+    }
+
+    public void setStreet(String street) {
+        this.mStreet = street;
+    }
+
+    public String getCity() {
+        return mCity;
+    }
+
+    public void setCity(String city) {
+        this.mCity = city;
+    }
+
+    public String getState() {
+        return mState;
+    }
+
+    public void setState(String state) {
+        this.mState = state;
+    }
+
+    public String getPostalCode() {
+        return mPostalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.mPostalCode = postalCode;
     }
 
     public String getCountry() {
@@ -119,63 +166,28 @@ public class Lead implements Parcelable{
         this.mLongitude = longitude;
     }
 
-    public String getAddress() {
-        return mAddress;
-    }
+    public String getAddress(){
+        String address = "";
+        if(mStreet!=null){
+            address = address + mStreet+", ";
+        }
 
-    public void setAddress(String address) {
-        this.mAddress = address;
-    }
+        if(mCity!=null){
+            address = address + mCity+", ";
+        }
 
-    public String getPhone() {
-        return mPhone;
-    }
+        if(mState!=null){
+            address = address + mState+", ";
+        }
 
-    public void setPhone(String phone) {
-        this.mPhone = phone;
-    }
+        if(mPostalCode!=null){
+            address = address + mPostalCode+", ";
+        }
 
-    public String getWebsite() {
-        return mWebsite;
-    }
 
-    public void setWebsite(String website) {
-        this.mWebsite = website;
-    }
-
-    public String getEmail() {
-        return mEmail;
-    }
-
-    public void setEmail(String email) {
-        this.mEmail = email;
-    }
-
-    public String getDescription() {
-        return mDescription;
-    }
-
-    public void setDescription(String description) {
-        this.mDescription = description;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(mId);
-        parcel.writeString(mName);
-        parcel.writeString(mCompany);
-        parcel.writeString(mCountry);
-        parcel.writeDouble(mLatitude);
-        parcel.writeDouble(mLongitude);
-        parcel.writeString(mAddress);
-        parcel.writeString(mPhone);
-        parcel.writeString(mWebsite);
-        parcel.writeString(mEmail);
-        parcel.writeString(mDescription);
+        if(mCountry!=null){
+            address = address + mCountry+", ";
+        }
+        return address;
     }
 }

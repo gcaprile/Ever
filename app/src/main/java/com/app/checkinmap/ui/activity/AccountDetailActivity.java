@@ -193,7 +193,11 @@ public class AccountDetailActivity extends AppCompatActivity implements AddressA
             checkPointData.setLongitude(accountAddress.getLongitude());
             checkPointData.setAddressId(accountAddress.getId());
             checkPointData.setCheckPointType(1);
-
+            if(accountAddress.getAddress()!=null){
+                checkPointData.setAddress(accountAddress.getAddress());
+            }else{
+                checkPointData.setAddress("");
+            }
             startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),checkPointData),
                     REQUEST_CHECK_IN);
         }else{

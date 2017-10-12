@@ -118,8 +118,10 @@ public class SearchableLeadsActivity extends AppCompatActivity implements LeadAd
      * sales force
      */
     public void getLeadFromSalesForce(){
-        String osql = "SELECT Id, Name, Company, Pais__c, Latitude, Longitude," +
-                "Phone, Website, Email, Description FROM Lead WHERE Pais__c = '"+Utility.getUserCountry()+"'";
+
+        String osql = "SELECT Id, Name, Company, Street, City, State, PostalCode, Country, Pais__c, Latitude, Longitude" +
+                " FROM Lead WHERE Pais__c = '"+Utility.getUserCountry()+"'";
+
 
         ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
             @Override
@@ -190,11 +192,35 @@ public class SearchableLeadsActivity extends AppCompatActivity implements LeadAd
             if(lead.getName()!=null){
                 if(lead.getName().toLowerCase().contains(mQuery.toLowerCase())){
                     list.add(lead);
+                }else{
+                    if(lead.getCompany()!=null){
+                        if(lead.getCompany().toLowerCase().contains(mQuery.toLowerCase())){
+                            list.add(lead);
+                        }else{
+                            if(lead.getAddress()!=null){
+                                if(lead.getAddress().toLowerCase().contains(mQuery.toLowerCase())){
+                                    list.add(lead);
+                                }
+                            }
+                        }
+                    }else{
+                        if(lead.getAddress()!=null){
+                            if(lead.getAddress().toLowerCase().contains(mQuery.toLowerCase())){
+                                list.add(lead);
+                            }
+                        }
+                    }
                 }
             }else{
                 if(lead.getCompany()!=null){
                     if(lead.getCompany().toLowerCase().contains(mQuery.toLowerCase())){
                         list.add(lead);
+                    }else{
+                        if(lead.getAddress()!=null){
+                            if(lead.getAddress().toLowerCase().contains(mQuery.toLowerCase())){
+                                list.add(lead);
+                            }
+                        }
                     }
                 }else{
                     if(lead.getAddress()!=null){
@@ -220,6 +246,12 @@ public class SearchableLeadsActivity extends AppCompatActivity implements LeadAd
             checkPointData.setLongitude(lead.getLongitude());
             checkPointData.setName(lead.getName());
             checkPointData.setCheckPointType(2);
+            if(lead.getAddress()!=null){
+                checkPointData.setAddress(lead.getAddress());
+            }else{
+                checkPointData.setAddress("");
+            }
+
 
              /*Here we notify the result*/
             Intent intent= new Intent();

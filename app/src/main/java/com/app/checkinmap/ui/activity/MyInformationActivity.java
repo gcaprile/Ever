@@ -28,6 +28,9 @@ public class MyInformationActivity extends AppCompatActivity {
     @BindView(R.id.text_view_account_name)
     TextView mTxvAccountName;
 
+    @BindView(R.id.text_view_profile_name)
+    TextView mTxvProfileName;
+
     /**
      * This method help us to get a single
      * intent in order to get a history activity
@@ -54,6 +57,7 @@ public class MyInformationActivity extends AppCompatActivity {
         mTxvEmail.setText(ci.email);
         mTxvUserName.setText(ci.username);
         mTxvAccountName.setText(ci.accountName);
+        mTxvProfileName.setText(Utility.getUserProfileName());
 
     }
 

@@ -102,8 +102,13 @@ public class SearchableWorkOrderActivity extends AppCompatActivity implements Wo
      */
     public void getWorkOrdersFromSalesForce(){
 
-        String osql = "SELECT Id, WorkOrderNumber, AccountId, ContactId, Country, " +
-                "Latitude, Longitude, Description, StartDate,EndDate, Status FROM WorkOrder";
+        /*String osql = "SELECT Id, WorkOrderNumber, AccountId, ContactId, Country, " +
+                "Latitude, Longitude, Description, StartDate, EndDate, Status FROM WorkOrder";*/
+
+        String osql = "SELECT Id, WorkOrderNumber, Country, Latitude, Longitude, " +
+                "Cuenta_del__c, Contacto__c, status, Detalle_Direccion__c, AccountId, ContactID, Direccion_Visita__c " +
+                "FROM WorkOrder ORDER BY WorkOrderNumber";
+
 
         ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
             @Override
@@ -166,6 +171,12 @@ public class SearchableWorkOrderActivity extends AppCompatActivity implements Wo
                 if(workOrder.getAccountName()!=null){
                     if(workOrder.getAccountName().toLowerCase().contains(mQuery.toLowerCase())){
                         workOrderList.add(workOrder);
+                    }else{
+                        if(workOrder.getContactName()!=null){
+                            if(workOrder.getContactName().toLowerCase().contains(mQuery.toLowerCase())){
+                                workOrderList.add(workOrder);
+                            }
+                        }
                     }
                 }else{
                     if(workOrder.getContactName()!=null){
@@ -221,8 +232,13 @@ public class SearchableWorkOrderActivity extends AppCompatActivity implements Wo
                         checkPointData.setLatitude(workOrder.getLatitude());
                         checkPointData.setLongitude(workOrder.getLongitude());
                         checkPointData.setContactId(workOrder.getContactId());
-                        checkPointData.setCheckPointType(3);
                         checkPointData.setName(workOrder.getContactName());
+                        if(workOrder.getAddressDetail()!=null){
+                            checkPointData.setAddress(workOrder.getAddressDetail());
+                        }else{
+                            checkPointData.setAddress("");
+                        }
+                        checkPointData.setCheckPointType(3);
 
                         if(workOrder.getCountry()!=null){
                             checkPointData.setName(workOrder.getWorkOrderNumber()+"-"+workOrder.getCountry());

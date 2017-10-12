@@ -62,6 +62,7 @@
     <string name="check_rol_explanation">Para cambiar de rol debe finalizar la ruta</string>
     <string name="user_name">Nombre de usuario</string>
     <string name="account_name">Nombre de la cuenta</string>
+    <string name="profile_name">Nombre del perfil</string>
 
 
     <string name="welcome">Welcome %s</string>
@@ -79,7 +80,8 @@
     <string name="work_order_description">Descripción de la orden de trabajo</string>
     <string name="you_should_start_the_route">Debe iniciar la ruta antes de realizar esta acción</string>
     <string name="no_address_title">Sin dirección</string>
-    <string name="no_address_description">Este cliente no tiene dirección registrada en el sistema. Se registrará una nueva dirección con su ubicación actual</string>
+    <string name="no_address_description">Este cliente no tiene coordenadas registradas en el sistema. Se registrarán las coordenadas de su dirección</string>
+    <string name="no_address_description_leads">Este cliente potencial no tiene coordenadas registradas en el sistema. Se registrarán las coordenadas de su dirección</string>
     <string name="finalize">Finalizar</string>
     <string name="in_process">En proceso</string>
     <string name="electronic_signature">Firma electrónica</string>
@@ -87,7 +89,7 @@
     <string name="select_an_address">Seleccione una dirección para continuar</string>
     <string name="no_address_to_show">No existen direcciones para mostrar</string>
     <string name="select_visit_type">Seleccione el tipo de visita</string>
-    <string name="no_check_in_available">Se encuentra demasiado lejos para registrar la visita</string>
+    <string name="no_check_in_available">No se puede hacer check in ya que no se encuentra dentro del radio aprobado</string>
     <string name="getting_contact_list">Obteniendo la lista de contactos&#8230;</string>
     <string name="select_contact">Seleccione un contacto</string>
     <string name="no_contacts_available">La cuenta no posee contactos</string>
@@ -113,7 +115,7 @@
     <string name="text_visit_description">Comentarios</string>
     <string name="text_contact">Contacto visitado</string>
     <string name="text_close_route_to_finalize">Debe finalizar la ruta para cerrar sesión</string>
-    <string name="text_close_session">¿Realmente desea finalizar su sesión?</string>
+    <string name="text_close_session">¿Desea finalizar su sesión?</string>
 
     <string-array name="visit_type">
         <item>Seguimiento</item>

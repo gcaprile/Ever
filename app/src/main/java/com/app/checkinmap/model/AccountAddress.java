@@ -175,4 +175,22 @@ public class AccountAddress implements Parcelable {
         this.mAccountId = accountId;
     }
 
+    public String getAddress(){
+        String address = "";
+
+
+        if(mCity!=null){
+            address = address + mCity+", ";
+        }
+
+        if(mState!=null){
+            address = address + mState+", ";
+        }
+
+        if(mCountry!=null){
+            address = address + mCountry+", ";
+        }
+        return address;
+    }
+
 }

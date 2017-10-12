@@ -45,7 +45,7 @@ public class AddressAdapterList extends RecyclerView.Adapter<AddressAdapterList.
     @Override
     public void onBindViewHolder(AddressViewHolder holder, int position) {
         holder.tvTitle.setText(mAccountAddressList.get(position).getName());
-        holder.tvDescription.setText(R.string.address_detail);
+        holder.tvDescription.setText(mAccountAddressList.get(position).getAddress());
     }
 
     @Override
