@@ -50,6 +50,11 @@ public class WorkOrderAdapterList extends RecyclerView.Adapter<WorkOrderAdapterL
             holder.tvWorkOrderNumber.setText(mWorkOrderList.get(position).getWorkOrderDetail().getWorkOrderNumber());
             holder.tvAddress.setText("");
         }
+        if(mWorkOrderList.get(position).isIsPrincipal()){
+            holder.tvPrincipal.setText("Si");
+        }else{
+            holder.tvPrincipal.setText("No");
+        }
         holder.tvStatus.setText(mWorkOrderList.get(position).getWorkOrderDetail().getStatus());
         holder.tvAccountContact.setText(mWorkOrderList.get(position).getWorkOrderDetail().getContactName());
         holder.tvAccountName.setText(mWorkOrderList.get(position).getWorkOrderDetail().getContactAccountName());
@@ -67,6 +72,9 @@ public class WorkOrderAdapterList extends RecyclerView.Adapter<WorkOrderAdapterL
 
         @BindView(R.id.text_view_work_order)
         TextView tvWorkOrderNumber;
+
+        @BindView(R.id.text_view_principal)
+        TextView tvPrincipal;
 
         @BindView(R.id.text_view_status)
         TextView tvStatus;

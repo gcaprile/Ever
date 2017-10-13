@@ -575,7 +575,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 String name = "";
                 if(mCheckPointData.getName()!=null){
                     name = Utility.getDateForName()+"-"+mCheckPointData.getName()+"-"+
-                            Utility.getRestClient().getClientInfo().username+
+                            Utility.getRestClient().getClientInfo().displayName+
                             "-"+ DatabaseManager.getInstance().getCorrelativeCheckPoint(PreferenceManager.getInstance(this).getRouteId());
                 }else{
                     name = Utility.getDateForName()+"-"+

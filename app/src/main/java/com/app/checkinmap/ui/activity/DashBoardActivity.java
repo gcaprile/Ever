@@ -345,7 +345,7 @@ public class DashBoardActivity extends AppCompatActivity
                                     Route route = new Route();
                                     route.setId(System.currentTimeMillis());
 
-                                    String name = Utility.getDateForName()+"-"+Utility.getRestClient().getClientInfo().username+
+                                    String name = Utility.getDateForName()+"-"+Utility.getRestClient().getClientInfo().displayName+
                                             "-"+ DatabaseManager.getInstance().getCorrelativeRoute(Utility.getDateForSearch());
                                     route.setName(name);
                                     route.setStartDate(Utility.getCurrentDate());
@@ -414,6 +414,7 @@ public class DashBoardActivity extends AppCompatActivity
     private  boolean checkAndRequestPermissions() {
         int locationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         int storagePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
         List<String> listPermissionsNeeded = new ArrayList<>();
         if (locationPermission != PackageManager.PERMISSION_GRANTED) {
             listPermissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);

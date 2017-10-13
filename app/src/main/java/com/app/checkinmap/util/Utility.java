@@ -141,7 +141,7 @@ public class Utility {
     public static String getDateForName(){
         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         Date date = new Date();
-        return "("+dateFormat.format(date)+")";
+        return dateFormat.format(date);
     }
 
     /**
