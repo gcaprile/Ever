@@ -158,12 +158,11 @@ public class MyOrderWorksActivity extends AppCompatActivity implements WorkOrder
      */
     public void getWorkOrdersFromSalesForce(){
 
-       /*String osql = "SELECT Id, WorkOrderNumber, AccountId, ContactId, Country, " +
-                "Latitude, Longitude, Description, StartDate,EndDate, Status FROM WorkOrder";*/
-
-       String osql = "SELECT Id, WorkOrderNumber, Country, Latitude, Longitude, " +
-               "Cuenta_del__c, Contacto__c, status, Detalle_Direccion__c, AccountId, ContactID, Direccion_Visita__c " +
-               "FROM WorkOrder ORDER BY WorkOrderNumber";
+        String osql = "SELECT Id, Tecnico__c, Principal__c, Work_Order__c, work_order__r.WorkOrderNumber, work_order__r.Direccion_Visita__r.id, work_order__r.Cuenta_del__c, work_order__r.Contacto__c, work_order__r.status, work_order__r.direccion_visita__r.Direccion__c,work_order__r.direccion_visita__r.Ciudad__c, work_order__r.direccion_visita__r.estado_o_provincia__c, work_order__r.direccion_visita__r.pais__c," +
+                " work_order__r.direccion_visita__r.coordenadas__c, work_order__r.AccountId, work_order__r.ContactID" +
+                " FROM Tecnicos_por_Orden_de_Trabajo__c" +
+                " WHERE  Tecnico__c = '"+Utility.getRestClient().getClientInfo().userId+"'" +
+                " AND (work_order__r.status = 'Open' OR work_order__r.status = 'In Process')";
 
         ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
             @Override
@@ -172,7 +171,7 @@ public class MyOrderWorksActivity extends AppCompatActivity implements WorkOrder
                 mPgBar.setVisibility(View.GONE);
                 if(success){
 
-                    Utility.logLargeString(jsonObject.toString());
+                    //Utility.logLargeString(jsonObject.toString());
 
                     try {
                         Type listType = new TypeToken<List<WorkOrder>>() {}.getType();
@@ -212,79 +211,40 @@ public class MyOrderWorksActivity extends AppCompatActivity implements WorkOrder
     @Override
     public void onItemClick(WorkOrder workOrder) {
         if(PreferenceManager.getInstance(this).isInRoute()){
-            checkIfIsMainTechnical(workOrder);
+
+            CheckPointData checkPointData = new CheckPointData();
+            checkPointData.setId(workOrder.getWorkOrderId());
+            checkPointData.setContactId(workOrder.getWorkOrderDetail().getContactId());
+            checkPointData.setContactName(workOrder.getWorkOrderDetail().getContactName());
+            checkPointData.setIsMainTechnical(workOrder.isIsPrincipal());
+            checkPointData.setMainTechnicalId(workOrder.getTechnicalId());
+            checkPointData.setCheckPointType(3);
+            if(workOrder.getWorkOrderDetail().getWorkOrderAddress()!=null){
+                checkPointData.setAddress(workOrder.getWorkOrderDetail().getWorkOrderAddress().getAddress());
+            }else{
+                checkPointData.setAddress("");
+            }
+            if(workOrder.getWorkOrderDetail().getWorkOrderAddress()!=null){
+                checkPointData.setName(workOrder.getWorkOrderDetail().getWorkOrderNumber()+"-"+workOrder.getWorkOrderDetail().getWorkOrderAddress().getCountry());
+
+                if(workOrder.getWorkOrderDetail().getWorkOrderAddress().getCoordinates()!=null){
+                    checkPointData.setLatitude(workOrder.getWorkOrderDetail().getWorkOrderAddress().getCoordinates().getLatitude());
+                    checkPointData.setLongitude(workOrder.getWorkOrderDetail().getWorkOrderAddress().getCoordinates().getLongitude());
+                }else{
+                    checkPointData.setLatitude(0);
+                    checkPointData.setLongitude(0);
+                }
+            }else{
+                checkPointData.setName(workOrder.getWorkOrderDetail().getWorkOrderNumber());
+            }
+
+            //Here we start the check flow
+            startCheckPointFlow(checkPointData);
         }else{
             showMessage(R.string.you_should_start_the_route);
         }
     }
 
-    /**
-     * This method help us to verify
-     * if the current user is the main
-     * technical in the order work
-     */
-    public void  checkIfIsMainTechnical(final WorkOrder workOrder){
-        mRv.setVisibility(View.INVISIBLE);
-        mPgBar.setVisibility(View.VISIBLE);
-
-        String osql = "SELECT Id FROM Tecnicos_por_Orden_de_Trabajo__c WHERE " +
-                "Tecnico__c = '"+Utility.getRestClient().getClientInfo().userId+"' AND " +
-                "Work_Order__c = '"+workOrder.getId()+"'";
-
-       // Utility.logLargeString(osql);
-
-        ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
-            @Override
-            public void onObject(boolean success, JSONObject jsonObject, String errorMessage) {
-                /*Here we hide the progress bar*/
-                mPgBar.setVisibility(View.GONE);
-                if(success){
-                    try {
-
-                        CheckPointData checkPointData = new CheckPointData();
-                        checkPointData.setId(workOrder.getId());
-                        checkPointData.setLatitude(workOrder.getLatitude());
-                        checkPointData.setLongitude(workOrder.getLongitude());
-                        checkPointData.setContactId(workOrder.getContactId());
-                        checkPointData.setName(workOrder.getContactName());
-                        if(workOrder.getAddressDetail()!=null){
-                            checkPointData.setAddress(workOrder.getAddressDetail());
-                        }else{
-                            checkPointData.setAddress("");
-                        }
-                        checkPointData.setCheckPointType(3);
-
-
-                        if(workOrder.getCountry()!=null){
-                            checkPointData.setName(workOrder.getWorkOrderNumber()+"-"+workOrder.getCountry());
-                        }else{
-                            checkPointData.setName(workOrder.getWorkOrderNumber());
-                        }
-
-                        /*Here we check if the technical is te main*/
-                        if(jsonObject.getInt("totalSize") == 1){
-                            checkPointData.setIsMainTechnical(true);
-                            checkPointData.setMainTechnicalId(Utility.getRestClient().getClientInfo().userId);
-                        }else{
-                            checkPointData.setIsMainTechnical(false);
-                        }
-
-                        //Here we start the check flow
-                        mRv.setVisibility(View.VISIBLE);
-                        startCheckPointFlow(checkPointData);
-
-                    } catch (JSONException e) {
-                        mRv.setVisibility(View.VISIBLE);
-                        showMessage(R.string.technical_main_check_fail);
-                    }
-
-                }else{
-                    mRv.setVisibility(View.VISIBLE);
-                    showMessage(R.string.technical_main_check_fail);
-                }
-            }
-        });
-    }
 
     /**
      * This method show a single message

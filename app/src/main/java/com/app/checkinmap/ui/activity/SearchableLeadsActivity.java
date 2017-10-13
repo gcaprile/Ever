@@ -252,30 +252,40 @@ public class SearchableLeadsActivity extends AppCompatActivity implements LeadAd
                 checkPointData.setAddress("");
             }
 
+            if(lead.getAddress()!=null){
+                if(!lead.getAddress().isEmpty()){
+                     /*Here we notify the result*/
+                    Intent intent= new Intent();
+                    intent.setAction(ACTION_SEARCH_RESULT);
+                    intent.putExtra(MyLeadsActivity.ARG_CHECK_POINT_DATA,checkPointData);
+                    sendBroadcast(intent);
 
-             /*Here we notify the result*/
-            Intent intent= new Intent();
-            intent.setAction(ACTION_SEARCH_RESULT);
-            intent.putExtra(MyLeadsActivity.ARG_CHECK_POINT_DATA,checkPointData);
-            sendBroadcast(intent);
-
-            finish();
+                    finish();
+                }else{
+                    showMessage(R.string.no_address_in_this_lead);
+                }
+            }else{
+                showMessage(R.string.no_address_in_this_lead);
+            }
         }else{
-
-            new MaterialDialog.Builder(this)
-                    .title(R.string.app_name)
-                    .content(R.string.you_should_start_the_route)
-                    .positiveColorRes(R.color.colorPrimary)
-                    .positiveText(R.string.accept)
-                    .onPositive(new MaterialDialog.SingleButtonCallback() {
-                        @Override
-                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-
-                            dialog.dismiss();
-                        }
-                    })
-                    .cancelable(false)
-                    .show();
+            showMessage(R.string.you_should_start_the_route);
         }
+    }
+
+    public void showMessage(int message){
+        new MaterialDialog.Builder(this)
+                .title(R.string.app_name)
+                .content(message)
+                .positiveColorRes(R.color.colorPrimary)
+                .positiveText(R.string.accept)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                        dialog.dismiss();
+                    }
+                })
+                .cancelable(false)
+                .show();
     }
 }

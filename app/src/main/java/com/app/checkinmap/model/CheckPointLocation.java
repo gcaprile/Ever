@@ -32,6 +32,7 @@ public class CheckPointLocation extends RealmObject {
     private String technicalId;
     private String recordType;
     private String accountContactName;
+    private String address;
 
 
     public long getId() {
@@ -200,5 +201,13 @@ public class CheckPointLocation extends RealmObject {
 
     public void setAccountContactName(String accountContactName) {
         this.accountContactName = accountContactName;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }

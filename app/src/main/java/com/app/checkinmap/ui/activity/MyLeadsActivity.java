@@ -209,25 +209,19 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
                 checkPointData.setAddress("");
             }
 
-            //Here we start the check flow
-            startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),checkPointData),
-                    REQUEST_CHECK_IN);
+            if(lead.getAddress()!=null){
+                if(!lead.getAddress().isEmpty()){
+                    //Here we start the check flow
+                    startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),checkPointData),
+                            REQUEST_CHECK_IN);
+                }else{
+                    showMessage(R.string.no_address_in_this_lead);
+                }
+            }else{
+                showMessage(R.string.no_address_in_this_lead);
+            }
         }else{
-
-            new MaterialDialog.Builder(this)
-                    .title(R.string.app_name)
-                    .content(R.string.you_should_start_the_route)
-                    .positiveColorRes(R.color.colorPrimary)
-                    .positiveText(R.string.accept)
-                    .onPositive(new MaterialDialog.SingleButtonCallback() {
-                        @Override
-                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-
-                            dialog.dismiss();
-                        }
-                    })
-                    .cancelable(false)
-                    .show();
+           showMessage(R.string.you_should_start_the_route);
         }
     }
 
@@ -239,5 +233,25 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
 
         startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),checkPointData),
                 REQUEST_CHECK_IN);
+    }
+
+    /**
+     * This method show a single message
+     */
+    public void showMessage(int message){
+        new MaterialDialog.Builder(this)
+                .title(R.string.app_name)
+                .content(message)
+                .positiveColorRes(R.color.colorPrimary)
+                .positiveText(R.string.accept)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                        dialog.dismiss();
+                    }
+                })
+                .cancelable(false)
+                .show();
     }
 }

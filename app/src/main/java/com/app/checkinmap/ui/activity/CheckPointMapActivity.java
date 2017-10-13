@@ -562,7 +562,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                         mCheckPointLocation.setWorkOrderContactId(mCheckPointData.getContactId());
                         mCheckPointLocation.setTechnicalId(mCheckPointData.getMainTechnicalId());
                         mCheckPointLocation.setRecordType("0126A000000l3D4QAI");
-                        mCheckPointLocation.setAccountContactName(mCheckPointData.getName());
+                        mCheckPointLocation.setAccountContactName(mCheckPointData.getContactName());
                         startCheck();
                         break;
                 }
@@ -588,6 +588,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 mCheckPointLocation.setVisitTime(Utility.getDurationInHours(mCheckPointLocation.getCheckInDate(),mCheckPointLocation.getCheckOutDate()));
                 String travelStartDate = DatabaseManager.getInstance().getTravelStartDate(PreferenceManager.getInstance(this).getRouteId());
                 mCheckPointLocation.setTravelTime(Utility.getDurationInHours(travelStartDate,mCheckPointLocation.getCheckInDate()));
+                mCheckPointLocation.setAddress(mCheckPointData.getAddress());
 
                 /*Here we save the data in Real*/
                 saveCheckPointLocation();
@@ -674,23 +675,20 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
 
 
             /*Here we update the address location*/
-            if(mCheckPointData.getAddress().isEmpty()){
-                if(mCheckPointData.getLatitude()==0 && mCheckPointData.getLongitude()==0){
+            if(mCheckPointData.getLatitude()==0 && mCheckPointData.getLongitude()==0){
 
-                    mCheckPointData.setLatitude(userLatitude);
-                    mCheckPointData.setLongitude(userLongitude);
+                mCheckPointData.setLatitude(userLatitude);
+                mCheckPointData.setLongitude(userLongitude);
 
-                    mNoAddressLocation=true;
+                mNoAddressLocation=true;
 
                     /*Here we show an explanation*/
-                    if(mCheckPointData.getCheckPointType()==2){
-                        showMessage(R.string.no_address_description_leads);
-                    }else{
-                        showMessage(R.string.no_address_description);
-                    }
+                if(mCheckPointData.getCheckPointType()==2){
+                    showMessage(R.string.no_address_description_leads);
+                }else{
+                    showMessage(R.string.no_address_description);
                 }
             }
-
 
             if(mNoAddressLocation){
 

@@ -142,4 +142,19 @@ public class DatabaseManager {
         realm.close();
         return checkPointLocation;
     }
+
+    /**
+     * This method help us to get all the check point
+     * from data base from a specific route
+     */
+    public String getRouteName(long id){
+        Route route = new Route();
+        Realm realm = Realm.getDefaultInstance();
+        Route routeQuery = realm.where(Route.class).equalTo("id",id ).findFirst();
+        if(routeQuery!=null){
+            route = realm.copyFromRealm(routeQuery);
+        }
+        realm.close();
+        return route.getName();
+    }
 }

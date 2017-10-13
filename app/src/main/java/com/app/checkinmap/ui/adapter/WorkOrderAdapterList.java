@@ -42,16 +42,18 @@ public class WorkOrderAdapterList extends RecyclerView.Adapter<WorkOrderAdapterL
 
     @Override
     public void onBindViewHolder(WorkOrderViewHolder holder, int position) {
-        if(mWorkOrderList.get(position).getCountry()!=null){
-            holder.tvWorkOrderNumber.setText(mWorkOrderList.get(position).getWorkOrderNumber()
-            +"-"+mWorkOrderList.get(position).getCountry());
+        if(mWorkOrderList.get(position).getWorkOrderDetail().getWorkOrderAddress()!=null){
+            holder.tvWorkOrderNumber.setText(mWorkOrderList.get(position).getWorkOrderDetail().getWorkOrderNumber()
+            +"-"+mWorkOrderList.get(position).getWorkOrderDetail().getWorkOrderAddress().getCountry());
+            holder.tvAddress.setText(mWorkOrderList.get(position).getWorkOrderDetail().getWorkOrderAddress().getAddress());
         }else{
-            holder.tvWorkOrderNumber.setText(mWorkOrderList.get(position).getWorkOrderNumber());
+            holder.tvWorkOrderNumber.setText(mWorkOrderList.get(position).getWorkOrderDetail().getWorkOrderNumber());
+            holder.tvAddress.setText("");
         }
-        holder.tvStatus.setText(mWorkOrderList.get(position).getStatus());
-        holder.tvAccountContact.setText(mWorkOrderList.get(position).getContactName());
-        holder.tvAccountName.setText(mWorkOrderList.get(position).getAccountName());
-        holder.tvAddress.setText(mWorkOrderList.get(position).getAddressDetail());
+        holder.tvStatus.setText(mWorkOrderList.get(position).getWorkOrderDetail().getStatus());
+        holder.tvAccountContact.setText(mWorkOrderList.get(position).getWorkOrderDetail().getContactName());
+        holder.tvAccountName.setText(mWorkOrderList.get(position).getWorkOrderDetail().getContactAccountName());
+
     }
 
     @Override

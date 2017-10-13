@@ -20,6 +20,7 @@ public class CheckPointData implements Parcelable{
     private String  mContactId;
     private String  mMainTechnicalId;
     private String  mAddress;
+    private String  mContactName;
 
     public CheckPointData(){
     }
@@ -35,6 +36,7 @@ public class CheckPointData implements Parcelable{
         mContactId = in.readString();
         mMainTechnicalId = in.readString();
         mAddress= in.readString();
+        mContactName= in.readString();
     }
 
     public static final Creator<CheckPointData> CREATOR = new Creator<CheckPointData>() {
@@ -129,6 +131,14 @@ public class CheckPointData implements Parcelable{
         this.mAddress = address;
     }
 
+    public String getContactName() {
+        return mContactName;
+    }
+
+    public void setContactName(String contactName) {
+        this.mContactName = contactName;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -146,5 +156,6 @@ public class CheckPointData implements Parcelable{
         parcel.writeString(mContactId);
         parcel.writeString(mMainTechnicalId);
         parcel.writeString(mAddress);
+        parcel.writeString(mContactName);
     }
 }

@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.app.checkinmap.R;
 import com.app.checkinmap.db.DatabaseManager;
+import com.app.checkinmap.model.CheckPointLocation;
 import com.app.checkinmap.model.UserLocation;
 import com.app.checkinmap.ui.adapter.HistoryAdapterList;
 import com.app.checkinmap.util.PreferenceManager;
@@ -34,6 +35,9 @@ public class HistoryActivity extends AppCompatActivity {
 
     @BindView(R.id.text_view_title_screen)
     TextView mTxvTitle;
+
+    @BindView(R.id.text_route_name)
+    TextView mTvRouteName;
 
     @BindView(R.id.text_view_distance)
     TextView mTvDistance;
@@ -69,23 +73,23 @@ public class HistoryActivity extends AppCompatActivity {
 
 
         /*Here we set the route data*/
-
+        mTvRouteName.setText(DatabaseManager.getInstance().getRouteName(PreferenceManager.getInstance(this).getRouteId()));
         mTvDistance.setText(getRoutDistance());
         mTvUsedTime.setText(getRouteTime());
         mTvVisitNumber.setText(String.valueOf(DatabaseManager.getInstance().getCheckPointLocationList(
                 PreferenceManager.getInstance(this).getRouteId()
         ).size()));
 
-        mRv.setHasFixedSize(true);
+        //mRv.setHasFixedSize(true);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mRv.setLayoutManager(layoutManager);
-        HistoryAdapterList adapter = new HistoryAdapterList(getLocations());
+        HistoryAdapterList adapter = new HistoryAdapterList(getCheckPointLocations());
         mRv.setAdapter(adapter);
 
     }
 
-    private List<UserLocation> getLocations(){
-        return DatabaseManager.getInstance().getUserLocationList(PreferenceManager.getInstance(this).getRouteId());
+    private List<CheckPointLocation> getCheckPointLocations(){
+        return DatabaseManager.getInstance().getCheckPointLocationList(PreferenceManager.getInstance(this).getRouteId());
     }
 
     @Override
@@ -104,21 +108,21 @@ public class HistoryActivity extends AppCompatActivity {
         String routeDistance="";
         float distance=0;
 
-        List<UserLocation> userLocations = getLocations();
+        List<CheckPointLocation> checkPointLocations = getCheckPointLocations();
 
-        for(int i=0;i<userLocations.size();i++){
-            if((i+1)<userLocations.size()){
-                UserLocation userLocationA = userLocations.get(i);
-                UserLocation userLocationB = userLocations.get(i+1);
+        for(int i=0;i<checkPointLocations.size();i++){
+            if((i+1)<checkPointLocations.size()){
+                CheckPointLocation userLocationA = checkPointLocations.get(i);
+                CheckPointLocation userLocationB = checkPointLocations.get(i+1);
 
                 Location locationA = new Location("");
                 Location locationB = new Location("");
 
-                locationA.setLongitude(userLocationA.getLongitude());
-                locationA.setLatitude(userLocationA.getLatitude());
+                locationA.setLongitude(userLocationA.getCheckInLongitude());
+                locationA.setLatitude(userLocationA.getCheckInLatitude());
 
-                locationB.setLongitude(userLocationB.getLongitude());
-                locationB.setLatitude(userLocationB.getLatitude());
+                locationB.setLongitude(userLocationB.getCheckInLongitude());
+                locationB.setLatitude(userLocationB.getCheckInLatitude());
 
                 distance = distance + locationA.distanceTo(locationB);
             }
@@ -135,12 +139,12 @@ public class HistoryActivity extends AppCompatActivity {
     public String getRouteTime(){
         String time ="";
 
-        List<UserLocation> userLocations = getLocations();
+        List<CheckPointLocation> userLocations = getCheckPointLocations();
 
         if(userLocations.size()>0){
 
-            String dateStart = userLocations.get(0).getDate();
-            String dateStop = userLocations.get(userLocations.size()-1).getDate();
+            String dateStart = userLocations.get(0).getCheckInDate();
+            String dateStop = userLocations.get(userLocations.size()-1).getCheckOutDate();
 
             //HH converts hour in 24 hours format (0-23), day calculation
             SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
@@ -152,13 +156,31 @@ public class HistoryActivity extends AppCompatActivity {
                 d1 = format.parse(dateStart);
                 d2 = format.parse(dateStop);
 
-                //in milliseconds
-                long diff = d2.getTime() - d1.getTime();
+                //diff check ins
+                long diffCheckIns = d2.getTime() - d1.getTime();
 
-                long diffSeconds = diff / 1000 % 60;
-                long diffMinutes = diff / (60 * 1000) % 60;
-                long diffHours = diff / (60 * 60 * 1000) % 24;
-                long diffDays = diff / (24 * 60 * 60 * 1000);
+                long diffCheckRoute = 0;
+
+                /*Here we get all the user locations*/
+                List<UserLocation> userLocationsMap = DatabaseManager.getInstance().getUserLocationList(PreferenceManager.getInstance(this).getRouteId());
+
+                if(userLocationsMap.size()>0){
+                    String dateStartRoute = userLocationsMap.get(0).getDate();
+                    String dateStopRoute = userLocationsMap.get(userLocations.size()-1).getDate();
+
+                    Date d3 = format.parse(dateStartRoute);
+                    Date d4 = format.parse(dateStopRoute);
+
+                    //diff locations
+                   diffCheckRoute = d4.getTime() - d3.getTime();
+                }
+
+                long totalDiff = diffCheckIns + diffCheckRoute;
+
+                long diffSeconds = totalDiff / 1000 % 60;
+                long diffMinutes = totalDiff / (60 * 1000) % 60;
+                long diffHours = totalDiff / (60 * 60 * 1000) % 24;
+                long diffDays = totalDiff / (24 * 60 * 60 * 1000);
 
                 time = diffHours+" horas "+ diffMinutes+" minutos ";
 
