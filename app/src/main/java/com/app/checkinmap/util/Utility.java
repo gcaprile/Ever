@@ -161,7 +161,6 @@ public class Utility {
     public static String getDurationInHours(String dateStart,String dateFinish){
         String time ="";
 
-        //HH converts hour in 24 hours format (0-23), day calculation
         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
         Date d1;
@@ -186,5 +185,40 @@ public class Utility {
         }
 
         return time;
+    }
+
+
+    /**
+     * This method help us to get the time in hour
+     * for the visit
+     */
+    public static double getDurationInHoursNumber(String dateStart,String dateFinish){
+        double totalTime=0;
+
+        //HH converts hour in 24 hours format (0-23), day calculation
+        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+
+        Date d1;
+        Date d2;
+
+        try {
+            d1 = format.parse(dateStart);
+            d2 = format.parse(dateFinish);
+
+            //in milliseconds
+            long diff = d2.getTime() - d1.getTime();
+
+            // long diffSeconds = diff / 1000 % 60;
+            long diffMinutes = diff / (60 * 1000) % 60;
+            long diffHours = diff / (60 * 60 * 1000) % 24;
+            // long diffDays = diff / (24 * 60 * 60 * 1000);
+
+            totalTime = diffHours + (diffMinutes/60);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return totalTime;
     }
 }

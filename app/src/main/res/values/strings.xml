@@ -124,6 +124,11 @@
     <string name="text_close_session">¿Desea finalizar su sesión?</string>
     <string name="no_address_in_this_lead">No puede realizar check in debido a que este cliente potencial no tiene una dirección registrada</string>
     <string name="text_is_principal">Principal:</string>
+    <string name="text_sending_route_data">Enviando datos de la ruta&#8230;</string>
+    <string name="text_route_data_sent">Datos de la ruta enviados con exito</string>
+    <string name="text_route_no_saved">La ruta no pudo ser almacenada</string>
+    <string name="text_work_order_status_no_updated">El status de la orden de trabajo no pudo ser actualizado</string>
+    <string name="text_work_order_updating_status">Actualizando el status de la orden de trabajo&#8230;</string>
 
 
     <string-array name="visit_type">

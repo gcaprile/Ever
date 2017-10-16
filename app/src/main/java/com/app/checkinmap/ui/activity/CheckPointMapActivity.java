@@ -257,13 +257,60 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
         if(mIsChecking){
             showCheckInFinalizeMessage();
         }else{
-            mIsChecking = true;
-            mBtnCheck.setVisibility(View.GONE);
-            mMapProgressMessage.setText(R.string.getting_your_location);
-            mMapProgress.setVisibility(View.VISIBLE);
-            getUserLocation();
+            if(mCheckPointData.getCheckPointType()==3){
+                mBtnCheck.setVisibility(View.GONE);
+                mMapProgressMessage.setText(R.string.text_work_order_updating_status);
+                mMapProgress.setVisibility(View.VISIBLE);
+                updateWorkOrderStatus(1);
+            }else{
+                startCheckInFlow();
+            }
         }
     }
+
+    /**
+     * This method help us to start the check in flow
+     */
+    public void startCheckInFlow(){
+        mIsChecking = true;
+        mBtnCheck.setVisibility(View.GONE);
+        mMapProgressMessage.setText(R.string.getting_your_location);
+        mMapProgress.setVisibility(View.VISIBLE);
+        getUserLocation();
+    }
+
+    /**
+     * Here we update the work order status
+     */
+      public void updateWorkOrderStatus(final int status){
+          String statusName = "";
+            if(status == 1){
+                statusName = "In Process";
+            }else{
+                statusName = "Finalizada Tecnico";
+            }
+
+            //Utility.logLargeString("Workorder actualizar "+mCheckPointData.getId());
+
+            /*Here we update the work order status*/
+            ApiManager.getInstance().updateWorkOrderStatus(this, mCheckPointData.getId(), statusName, new ApiManager.OnObjectListener() {
+                @Override
+                public void onObject(boolean success, JSONObject jsonObject, String errorMessage) {
+                    if(success){
+                        //Utility.logLargeString(jsonObject.toString());
+                        if(status == 1){
+                            startCheckInFlow();
+                        }else{
+                            finishCheckIn();
+                        }
+                    }else{
+                        showMessage(R.string.text_work_order_status_no_updated);
+                        mMapProgress.setVisibility(View.GONE);
+                        mBtnCheck.setVisibility(View.VISIBLE);
+                    }
+                }
+            });
+      }
 
     @Override
     protected void onResume() {
@@ -586,8 +633,10 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 mCheckPointLocation.setName(name);
                 mCheckPointLocation.setRouteId(String.valueOf(PreferenceManager.getInstance(this).getRouteId()));
                 mCheckPointLocation.setVisitTime(Utility.getDurationInHours(mCheckPointLocation.getCheckInDate(),mCheckPointLocation.getCheckOutDate()));
+                mCheckPointLocation.setVisitTimeNumber(Utility.getDurationInHoursNumber(mCheckPointLocation.getCheckInDate(),mCheckPointLocation.getCheckOutDate()));
                 String travelStartDate = DatabaseManager.getInstance().getTravelStartDate(PreferenceManager.getInstance(this).getRouteId());
                 mCheckPointLocation.setTravelTime(Utility.getDurationInHours(travelStartDate,mCheckPointLocation.getCheckInDate()));
+                mCheckPointLocation.setTravelTimeNumber(Utility.getDurationInHoursNumber(travelStartDate,mCheckPointLocation.getCheckInDate()));
                 mCheckPointLocation.setAddress(mCheckPointData.getAddress());
 
                 /*Here we save the data in Real*/
@@ -614,22 +663,12 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 public void execute(Realm realm) {
                     realm.copyToRealmOrUpdate(mCheckPointLocation);
                     Log.d("REALM CHECK POINT", "SUCCESS CHECK");
+                    if(mCheckPointData.getCheckPointType()==3){
+                        updateWorkOrderStatus(2);
+                    }else{
+                        finishCheckIn();
+                    }
 
-                     /*Here we return to route mode*/
-                    PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(true);
-
-                    Intent dataIntent = new Intent();
-                    dataIntent.putExtra(ARG_CHECK_POINT_LOCATION_ID,mCheckPointLocation.getId());
-
-                    /**************************************************************************/
-
-                            /*ACTUALIZAR ACA EL ESTADO DE LA RUTA FINALIZADA*/
-
-                    /***********************************************************************/
-
-                    /*Here we finalize the activity for result*/
-                    setResult(RESULT_OK,dataIntent);
-                    finish();
 
                 }
             });
@@ -640,6 +679,18 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 realm.close();
             }
         }
+    }
+
+    public void finishCheckIn(){
+         /*Here we return to route mode*/
+        PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(true);
+
+        Intent dataIntent = new Intent();
+        dataIntent.putExtra(ARG_CHECK_POINT_LOCATION_ID,mCheckPointLocation.getId());
+
+                    /*Here we finalize the activity for result*/
+        setResult(RESULT_OK,dataIntent);
+        finish();
     }
 
     /**

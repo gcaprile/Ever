@@ -92,6 +92,7 @@ public class DashBoardActivity extends AppCompatActivity
     private GoogleMap                   mMap;
     private boolean                     mLocationPermissionGranted=false;
     private FusedLocationProviderClient mFusedLocationProviderClient;
+    private MaterialDialog              mMaterialProgressDialog;
 
 
     /**
@@ -679,13 +680,16 @@ public class DashBoardActivity extends AppCompatActivity
             realm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
+
+                    Route routeCopy;
                     Route toEdit = realm.where(Route.class)
                             .equalTo("id", PreferenceManager.getInstance(getApplicationContext()).getRouteId()).findFirst();
                     toEdit.setEndDate(Utility.getCurrentDate());
                     realm.copyToRealmOrUpdate(toEdit);
-                    PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(false);
-                    updateButtonUi();
-                    callHistoryActivity();
+
+                    /*Here we send the data to sales force*/
+                    routeCopy = realm.copyFromRealm(toEdit);
+                    sendToSalesForce(routeCopy);
                     Log.d("REALM"," actualizada");
                 }
             });
@@ -696,6 +700,42 @@ public class DashBoardActivity extends AppCompatActivity
                 realm.close();
             }
         }
+    }
+
+    /**
+     * This method help us to send the data to sales force
+     */
+    public void sendToSalesForce(final Route route){
+        showProgressDialog();
+        ApiManager.getInstance().makeRouteUpsert(this, route, new ApiManager.OnObjectListener() {
+            @Override
+            public void onObject(boolean success, JSONObject jsonObject, String errorMessage) {
+                if(success){
+                    try {
+                        if(jsonObject.getBoolean("success")){
+
+                            /*Here we get the sales force route id*/
+                            String routeId = jsonObject.getString("id");
+
+                            /*Here we get the visits from the database*/
+                            List<CheckPointLocation> checkPointLocations = DatabaseManager.getInstance().getCheckPointLocationList(route.getId());
+
+                            /*Here we sen the data to sales force*/
+                            sendVisitToSalesForce(checkPointLocations,routeId,0);
+                        }else{
+                            showMessage(R.string.text_route_no_saved);
+                            hideProgressDialog();
+                        }
+                    } catch (JSONException e) {
+                        showMessage(R.string.text_route_no_saved);
+                        hideProgressDialog();
+                    }
+                }else{
+                    showMessage(R.string.text_route_no_saved);
+                    hideProgressDialog();
+                }
+            }
+        });
     }
 
     /**
@@ -745,5 +785,63 @@ public class DashBoardActivity extends AppCompatActivity
      */
     public void closeSalesForce(){
         SalesforceSDKManager.getInstance().logout(this);
+    }
+
+    /**
+     * This method help us to show a single progress dialog
+     */
+    public void showProgressDialog(){
+        mMaterialProgressDialog = new MaterialDialog.Builder(this)
+                .title(R.string.app_name)
+                .content(R.string.text_sending_route_data)
+                .progress(true,0)
+                .widgetColor(getResources().getColor(R.color.colorPrimary))
+                .cancelable(false)
+                .show();
+
+    }
+
+    /**
+     * This method help us to hide the progress
+     * dialog
+     */
+    public void hideProgressDialog(){
+        mMaterialProgressDialog.dismiss();
+    }
+
+    /**
+     * This method help us to send all the visit
+     * to sales force account
+     */
+    public void sendVisitToSalesForce(final List<CheckPointLocation> visits, final String routeId, final int position){
+        if(position<visits.size()){
+            ApiManager.getInstance().makeVisitUpsert(this, routeId, visits.get(position), new ApiManager.OnObjectListener() {
+                @Override
+                public void onObject(boolean success, JSONObject jsonObject, String errorMessage) {
+                    if(success){
+                        try {
+                            if(jsonObject.getBoolean("success")){
+                                sendVisitToSalesForce(visits,routeId,position+1);
+                            }else{
+                                showMessage(R.string.text_route_no_saved);
+                                hideProgressDialog();
+                            }
+                        } catch (JSONException e) {
+                            showMessage(R.string.text_route_no_saved);
+                            hideProgressDialog();
+                        }
+                    }else{
+                        showMessage(R.string.text_route_no_saved);
+                        hideProgressDialog();
+                    }
+                }
+            });
+        }else{
+            PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(false);
+            updateButtonUi();
+            callHistoryActivity();
+            hideProgressDialog();
+            //showMessage(R.string.text_route_data_sent);
+        }
     }
 }

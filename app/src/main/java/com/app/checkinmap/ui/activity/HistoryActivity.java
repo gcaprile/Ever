@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,6 +14,8 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.db.DatabaseManager;
 import com.app.checkinmap.model.CheckPointLocation;
@@ -85,6 +88,9 @@ public class HistoryActivity extends AppCompatActivity {
         mRv.setLayoutManager(layoutManager);
         HistoryAdapterList adapter = new HistoryAdapterList(getCheckPointLocations());
         mRv.setAdapter(adapter);
+
+        /*Here we show a success message*/
+        showMessage(R.string.text_route_data_sent);
 
     }
 
@@ -190,5 +196,25 @@ public class HistoryActivity extends AppCompatActivity {
 
         }
         return time;
+    }
+
+
+    /**
+     * This method help use to show a message
+     */
+    public void showMessage(int message){
+        new MaterialDialog.Builder(this)
+                .title(R.string.app_name)
+                .content(message)
+                .positiveColorRes(R.color.colorPrimary)
+                .positiveText(R.string.accept)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss();
+                    }
+                })
+                .cancelable(false)
+                .show();
     }
 }

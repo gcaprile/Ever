@@ -171,7 +171,7 @@ public class MyOrderWorksActivity extends AppCompatActivity implements WorkOrder
                 mPgBar.setVisibility(View.GONE);
                 if(success){
 
-                    //Utility.logLargeString(jsonObject.toString());
+                    //Utility.logLargeString("ordenes de trabajo: "+jsonObject.toString());
 
                     try {
                         Type listType = new TypeToken<List<WorkOrder>>() {}.getType();

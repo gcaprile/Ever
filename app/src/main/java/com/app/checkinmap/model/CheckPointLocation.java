@@ -1,5 +1,12 @@
 package com.app.checkinmap.model;
 
+import android.util.Log;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
@@ -33,7 +40,24 @@ public class CheckPointLocation extends RealmObject {
     private String recordType;
     private String accountContactName;
     private String address;
+    private double visitTimeNumber;
+    private double travelTimeNumber;
 
+    public double getVisitTimeNumber() {
+        return visitTimeNumber;
+    }
+
+    public void setVisitTimeNumber(double visitTimeNumber) {
+        this.visitTimeNumber = visitTimeNumber;
+    }
+
+    public double getTravelTimeNumber() {
+        return travelTimeNumber;
+    }
+
+    public void setTravelTimeNumber(double travelTimeNumber) {
+        this.travelTimeNumber = travelTimeNumber;
+    }
 
     public long getId() {
         return id;
@@ -209,5 +233,33 @@ public class CheckPointLocation extends RealmObject {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getCheckInDateSalesForceDate() {
+        String date ="";
+        DateFormat inputDf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        DateFormat ouputDf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.000Z");
+        try {
+            Date checkInDate = inputDf.parse(getCheckInDate());
+            date = ouputDf.format(checkInDate);
+            Log.d("inDate",date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return date;
+    }
+
+    public String getCheckOutDateSalesForceDate() {
+        String date ="";
+        DateFormat inputDf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        DateFormat ouputDf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.000Z");
+        try {
+            Date checkOutDate = inputDf.parse(getCheckOutDate());
+            date = ouputDf.format(checkOutDate);
+            Log.d("outDate",date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return date;
     }
 }
