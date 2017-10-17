@@ -102,7 +102,6 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
     private CheckPointData              mCheckPointData;
     private boolean                     mFirstLoadRequest=true;
     private boolean                     mNoAddressLocation=false;
-    //private int                         mCheckPointType=0;
 
     /**
      * This method help us to get a single
@@ -258,10 +257,14 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
             showCheckInFinalizeMessage();
         }else{
             if(mCheckPointData.getCheckPointType()==3){
-                mBtnCheck.setVisibility(View.GONE);
-                mMapProgressMessage.setText(R.string.text_work_order_updating_status);
-                mMapProgress.setVisibility(View.VISIBLE);
-                updateWorkOrderStatus(1);
+                if(mCheckPointData.isIsMainTechnical()){
+                    mBtnCheck.setVisibility(View.GONE);
+                    mMapProgressMessage.setText(R.string.text_work_order_updating_status);
+                    mMapProgress.setVisibility(View.VISIBLE);
+                    updateWorkOrderStatus(1);
+                }else{
+                    startCheckInFlow();
+                }
             }else{
                 startCheckInFlow();
             }
@@ -586,6 +589,14 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 mCheckPointLocation.setCheckInLatitude(latitude);
                 mCheckPointLocation.setCheckInLongitude(longitude);
                 mCheckPointLocation.setCheckInDate(Utility.getCurrentDate());
+                if(mCheckPointData.isUpdateAddress()){
+                    mCheckPointLocation.setLongitude(mCheckPointData.getLongitude());
+                    mCheckPointLocation.setLatitude(mCheckPointData.getLatitude());
+                    mCheckPointLocation.setUpdateAddress(true);
+                }else{
+                    mCheckPointLocation.setUpdateAddress(false);
+                }
+
 
                 /*Here we hide the progress*/
                 mMapProgress.setVisibility(View.GONE);
@@ -618,15 +629,29 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 mCheckPointLocation.setCheckOutLongitude(longitude);
                 mCheckPointLocation.setCheckOutDate(Utility.getCurrentDate());
 
+
+                String visitTypeName ="";
+                switch (mCheckPointData.getCheckPointType()){
+                    case 1:
+                        visitTypeName = "cotacto";
+                        break;
+                    case 2:
+                        visitTypeName = "lead";
+                        break;
+                    case 3:
+                        visitTypeName = "tecnica";
+                        break;
+                }
+
                 /*Here we create the name*/
                 String name = "";
                 if(mCheckPointData.getName()!=null){
                     name = Utility.getDateForName()+"-"+mCheckPointData.getName()+"-"+
-                            Utility.getRestClient().getClientInfo().displayName+
+                            Utility.getRestClient().getClientInfo().displayName+"-"+visitTypeName+
                             "-"+ DatabaseManager.getInstance().getCorrelativeCheckPoint(PreferenceManager.getInstance(this).getRouteId());
                 }else{
                     name = Utility.getDateForName()+"-"+
-                            Utility.getRestClient().getClientInfo().username+
+                            Utility.getRestClient().getClientInfo().username+"-"+visitTypeName+
                             "-"+ DatabaseManager.getInstance().getCorrelativeCheckPoint(PreferenceManager.getInstance(this).getRouteId());
                 }
                 Log.d("checkP Name",name);
@@ -664,7 +689,11 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                     realm.copyToRealmOrUpdate(mCheckPointLocation);
                     Log.d("REALM CHECK POINT", "SUCCESS CHECK");
                     if(mCheckPointData.getCheckPointType()==3){
-                        updateWorkOrderStatus(2);
+                        if(mCheckPointData.isIsMainTechnical()){
+                            updateWorkOrderStatus(2);
+                        }else{
+                            finishCheckIn();
+                        }
                     }else{
                         finishCheckIn();
                     }
@@ -730,6 +759,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
 
                 mCheckPointData.setLatitude(userLatitude);
                 mCheckPointData.setLongitude(userLongitude);
+                mCheckPointData.setUpdateAddress(true);
 
                 mNoAddressLocation=true;
 
@@ -739,6 +769,8 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 }else{
                     showMessage(R.string.no_address_description);
                 }
+            }else{
+                mCheckPointData.setUpdateAddress(false);
             }
 
             if(mNoAddressLocation){
@@ -884,13 +916,6 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
      * flow
      */
     public void startCheck(){
-
-        /**************************************************************************/
-
-                            /*ACTUALIZAR ACA EL ESTADO DE LA RUTA COMENZADA*/
-
-        /***********************************************************************/
-
         /*Here we start the check in*/
         mChronometer.setBase(SystemClock.elapsedRealtime());
 

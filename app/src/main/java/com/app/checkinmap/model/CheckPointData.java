@@ -21,9 +21,11 @@ public class CheckPointData implements Parcelable{
     private String  mMainTechnicalId;
     private String  mAddress;
     private String  mContactName;
+    private boolean mUpdateAddress;
 
     public CheckPointData(){
     }
+
 
     protected CheckPointData(Parcel in) {
         mId = in.readString();
@@ -35,8 +37,30 @@ public class CheckPointData implements Parcelable{
         mAddressId = in.readString();
         mContactId = in.readString();
         mMainTechnicalId = in.readString();
-        mAddress= in.readString();
-        mContactName= in.readString();
+        mAddress = in.readString();
+        mContactName = in.readString();
+        mUpdateAddress = in.readByte() != 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mId);
+        dest.writeString(mName);
+        dest.writeInt(mCheckPointType);
+        dest.writeDouble(mLatitude);
+        dest.writeDouble(mLongitude);
+        dest.writeByte((byte) (mIsMainTechnical ? 1 : 0));
+        dest.writeString(mAddressId);
+        dest.writeString(mContactId);
+        dest.writeString(mMainTechnicalId);
+        dest.writeString(mAddress);
+        dest.writeString(mContactName);
+        dest.writeByte((byte) (mUpdateAddress ? 1 : 0));
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     public static final Creator<CheckPointData> CREATOR = new Creator<CheckPointData>() {
@@ -139,23 +163,11 @@ public class CheckPointData implements Parcelable{
         this.mContactName = contactName;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
+    public boolean isUpdateAddress() {
+        return mUpdateAddress;
     }
 
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(mId);
-        parcel.writeString(mName);
-        parcel.writeInt(mCheckPointType);
-        parcel.writeDouble(mLatitude);
-        parcel.writeDouble(mLongitude);
-        parcel.writeByte((byte) (mIsMainTechnical ? 1 : 0));
-        parcel.writeString(mAddressId);
-        parcel.writeString(mContactId);
-        parcel.writeString(mMainTechnicalId);
-        parcel.writeString(mAddress);
-        parcel.writeString(mContactName);
+    public void setUpdateAddress(boolean updateAddress) {
+        this.mUpdateAddress = updateAddress;
     }
 }

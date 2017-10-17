@@ -104,6 +104,14 @@ public class ApiManager {
         dataSend.put("Hora_Fin__c",route.getEndDate());
         dataSend.put("Kilometraje__c",route.getMileage());
         dataSend.put("User__c",route.getUserId());
+        if(Utility.getUserRole() == Utility.Roles.TECHNICAL){
+            dataSend.put("RecordTypeId","0126A000000l355QAA");
+        }else{
+            if(Utility.getUserRole() == Utility.Roles.SELLER){
+                dataSend.put("RecordTypeId","0126A000000l34lQAA");
+            }
+        }
+
 
         RestRequest restRequest = null;
         try {
@@ -232,6 +240,56 @@ public class ApiManager {
         try {
             restRequest = RestRequest.getRequestForUpdate(ApiVersionStrings.getVersionNumber(context), "WorkOrder",
                     workOrderId, dataSend);
+
+            Utility.getRestClient().sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+                @Override
+                public void onSuccess(RestRequest request, final RestResponse result) {
+                    result.consumeQuietly(); // consume before going back to main thread
+                    ((Activity)context).runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(result.isSuccess()){
+                                listener.onObject(true,null,null);
+                            }else{
+                                listener.onObject(false,null,null);
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(final Exception exception) {
+                    ((Activity)context).runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onObject(false,null,exception.toString());
+                        }
+                    });
+                }
+            });
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * This method help us to make the update
+     * in the address object when the new coordinates
+     */
+    public void updateAddressCoordinates(final Context context,String addressId, double latitude,double longitude,final OnObjectListener listener){
+
+        HashMap<String,Object> dataSend = new HashMap<>();
+        dataSend.put("Coordenadas__Latitude__s",latitude);
+        dataSend.put("Coordenadas__Longitude__s",longitude);
+
+        RestRequest restRequest = null;
+        try {
+            restRequest = RestRequest.getRequestForUpdate(ApiVersionStrings.getVersionNumber(context), "Direcciones__c",
+                    addressId, dataSend);
 
             Utility.getRestClient().sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
                 @Override

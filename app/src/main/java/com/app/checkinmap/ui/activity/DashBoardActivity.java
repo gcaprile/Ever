@@ -346,7 +346,14 @@ public class DashBoardActivity extends AppCompatActivity
                                     Route route = new Route();
                                     route.setId(System.currentTimeMillis());
 
-                                    String name = Utility.getDateForName()+"-"+Utility.getRestClient().getClientInfo().displayName+
+                                    /**Here we create the route name*/
+                                    String routeTypeString ="";
+                                    if(Utility.getUserRole() == Utility.Roles.SELLER){
+                                        routeTypeString = "venta";
+                                    }else{
+                                        routeTypeString = "tecnica";
+                                    }
+                                    String name = Utility.getDateForName()+"-"+Utility.getRestClient().getClientInfo().displayName+"-"+routeTypeString+
                                             "-"+ DatabaseManager.getInstance().getCorrelativeRoute(Utility.getDateForSearch());
                                     route.setName(name);
                                     route.setStartDate(Utility.getCurrentDate());
@@ -821,7 +828,12 @@ public class DashBoardActivity extends AppCompatActivity
                     if(success){
                         try {
                             if(jsonObject.getBoolean("success")){
-                                sendVisitToSalesForce(visits,routeId,position+1);
+
+                                if(visits.get(position).isUpdateAddress()){
+                                       updateAddressLocation(visits,routeId,position);
+                                }else{
+                                    sendVisitToSalesForce(visits,routeId,position+1);
+                                }
                             }else{
                                 showMessage(R.string.text_route_no_saved);
                                 hideProgressDialog();
@@ -841,7 +853,33 @@ public class DashBoardActivity extends AppCompatActivity
             updateButtonUi();
             callHistoryActivity();
             hideProgressDialog();
-            //showMessage(R.string.text_route_data_sent);
         }
+    }
+
+    /**
+     * This method help us to update the address object
+     * in sales force
+     */
+    public void updateAddressLocation(final List<CheckPointLocation> visits, final String routeId, final int position){
+        String addressId = visits.get(position).getAddressId();
+        double latitude = visits.get(position).getLatitude();
+        double longitude = visits.get(position).getLongitude();
+
+        Log.d("addresId",String.valueOf(addressId));
+        Log.d("latitude",String.valueOf(latitude));
+        Log.d("longitude",String.valueOf(longitude));
+
+
+        ApiManager.getInstance().updateAddressCoordinates(this, addressId, latitude, longitude, new ApiManager.OnObjectListener() {
+            @Override
+            public void onObject(boolean success, JSONObject jsonObject, String errorMessage) {
+                if(success){
+                    sendVisitToSalesForce(visits,routeId,position+1);
+                }else{
+                    showMessage(R.string.text_route_no_saved);
+                    hideProgressDialog();
+                }
+            }
+        });
     }
 }

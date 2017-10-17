@@ -23,6 +23,8 @@ public class CheckPointLocation extends RealmObject {
     private double checkInLongitude;
     private double checkOutLatitude;
     private double checkOutLongitude;
+    private double latitude;
+    private double longitude;
     private String leadId;
     private String workOrderContactId;
     private String accountContactId;
@@ -42,6 +44,31 @@ public class CheckPointLocation extends RealmObject {
     private String address;
     private double visitTimeNumber;
     private double travelTimeNumber;
+    private boolean updateAddress;
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public boolean isUpdateAddress() {
+        return updateAddress;
+    }
+
+    public void setUpdateAddress(boolean updateAddress) {
+        this.updateAddress = updateAddress;
+    }
 
     public double getVisitTimeNumber() {
         return visitTimeNumber;
