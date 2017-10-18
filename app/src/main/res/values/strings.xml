@@ -129,6 +129,7 @@
     <string name="text_route_no_saved">La ruta no pudo ser almacenada</string>
     <string name="text_work_order_status_no_updated">El status de la orden de trabajo no pudo ser actualizado</string>
     <string name="text_work_order_updating_status">Actualizando el status de la orden de trabajo&#8230;</string>
+    <string name="sing_no_saved">No se pudo guardar su firma</string>
 
 
     <string-array name="visit_type">

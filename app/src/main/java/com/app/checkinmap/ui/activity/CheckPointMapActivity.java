@@ -67,6 +67,8 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.realm.Realm;
 
+import static com.app.checkinmap.ui.activity.SignatureActivity.ARG_SING_FILE_PATH;
+
 public class CheckPointMapActivity extends AppCompatActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback{
 
     public static final int  REQUEST_CHECK_IN =             79;
@@ -219,6 +221,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
         switch (requestCode){
             case SIGNATURE_REQUEST:
                 if(resultCode==RESULT_OK){
+                    mCheckPointLocation.setSignatureFilePath(data.getExtras().getString(ARG_SING_FILE_PATH));
                    getUserLocationToFinalize();
                 }
                 break;
@@ -291,9 +294,8 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 statusName = "In Process";
             }else{
                 statusName = "Finalizada Tecnico";
+                //statusName = "In Process";
             }
-
-            //Utility.logLargeString("Workorder actualizar "+mCheckPointData.getId());
 
             /*Here we update the work order status*/
             ApiManager.getInstance().updateWorkOrderStatus(this, mCheckPointData.getId(), statusName, new ApiManager.OnObjectListener() {
@@ -589,6 +591,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 mCheckPointLocation.setCheckInLatitude(latitude);
                 mCheckPointLocation.setCheckInLongitude(longitude);
                 mCheckPointLocation.setCheckInDate(Utility.getCurrentDate());
+                mCheckPointLocation.setAddressId(mCheckPointData.getAddressId());
                 if(mCheckPointData.isUpdateAddress()){
                     mCheckPointLocation.setLongitude(mCheckPointData.getLongitude());
                     mCheckPointLocation.setLatitude(mCheckPointData.getLatitude());
@@ -606,6 +609,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                     case 1:
                         mCheckPointLocation.setAddressId(mCheckPointData.getAddressId());
                         mCheckPointLocation.setRecordType("0126A000000l3CuQAI");
+                        mCheckPointLocation.setMainTechnical(false);
                         showVisitTypeMessage();
                         break;
                     case 2:
@@ -613,6 +617,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                         mCheckPointLocation.setLeadId(mCheckPointData.getId());
                         mCheckPointLocation.setRecordType("0126A000000l3CzQAI");
                         mCheckPointLocation.setAccountContactName(mCheckPointData.getName());
+                        mCheckPointLocation.setMainTechnical(false);
                         startCheck();
                         break;
                     case 3:
@@ -621,6 +626,11 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                         mCheckPointLocation.setTechnicalId(mCheckPointData.getMainTechnicalId());
                         mCheckPointLocation.setRecordType("0126A000000l3D4QAI");
                         mCheckPointLocation.setAccountContactName(mCheckPointData.getContactName());
+                        if(mCheckPointData.isIsMainTechnical()){
+                            mCheckPointLocation.setMainTechnical(true);
+                        }else{
+                            mCheckPointLocation.setMainTechnical(false);
+                        }
                         startCheck();
                         break;
                 }
@@ -964,7 +974,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
     public void checkSingActivity(){
          /*Here we check if we have to get the signature*/
         if(mCheckPointData.isIsMainTechnical()){
-            startActivityForResult(SignatureActivity.getIntent(getApplicationContext(),mCheckPointData.getName()),SIGNATURE_REQUEST);
+            startActivityForResult(SignatureActivity.getIntent(getApplicationContext(),mCheckPointData.getName(),mCheckPointData.getWorkOrderNumber()),SIGNATURE_REQUEST);
         }else{
           getUserLocationToFinalize();
         }

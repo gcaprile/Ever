@@ -14,6 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
@@ -100,8 +101,8 @@ public class ApiManager {
 
         HashMap<String,Object> dataSend = new HashMap<>();
         dataSend.put("Name",route.getName());
-        dataSend.put("Hora_Inicio__c",route.getStartDate());
-        dataSend.put("Hora_Fin__c",route.getEndDate());
+        dataSend.put("Hora_Inicio__c",route.getStartDateSalesForceDate());
+        dataSend.put("Hora_Fin__c",route.getEndDateSalesForceDate());
         dataSend.put("Kilometraje__c",route.getMileage());
         dataSend.put("User__c",route.getUserId());
         if(Utility.getUserRole() == Utility.Roles.TECHNICAL){
@@ -280,16 +281,14 @@ public class ApiManager {
      * This method help us to make the update
      * in the address object when the new coordinates
      */
-    public void updateAddressCoordinates(final Context context,String addressId, double latitude,double longitude,final OnObjectListener listener){
+    public void updateAddressCoordinates(final Context context,String objectId,String objectName, HashMap<String,Object> dataSend ,final OnObjectListener listener){
 
-        HashMap<String,Object> dataSend = new HashMap<>();
-        dataSend.put("Coordenadas__Latitude__s",latitude);
-        dataSend.put("Coordenadas__Longitude__s",longitude);
+
 
         RestRequest restRequest = null;
         try {
-            restRequest = RestRequest.getRequestForUpdate(ApiVersionStrings.getVersionNumber(context), "Direcciones__c",
-                    addressId, dataSend);
+            restRequest = RestRequest.getRequestForUpdate(ApiVersionStrings.getVersionNumber(context), objectName,
+                    objectId, dataSend);
 
             Utility.getRestClient().sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
                 @Override
@@ -300,6 +299,63 @@ public class ApiManager {
                         public void run() {
                             if(result.isSuccess()){
                                 listener.onObject(true,null,null);
+                            }else{
+                                listener.onObject(false,null,null);
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(final Exception exception) {
+                    ((Activity)context).runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onObject(false,null,exception.toString());
+                        }
+                    });
+                }
+            });
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * This method help us to send the sing image
+     * to sales force object
+     */
+    public void sendSingToSalesForce(final Context context, String workOrderId, String fileImagePath,String fileName,final OnObjectListener listener){
+
+        HashMap<String,Object> dataSend = new HashMap<>();
+        dataSend.put("Name",fileName);
+        dataSend.put("ParentId",workOrderId);
+        dataSend.put("Body",ImageHelper.getBase64FromImage(fileImagePath));
+
+        RestRequest restRequest = null;
+        try {
+            //Attachment
+            restRequest = RestRequest.getRequestForCreate(ApiVersionStrings.getVersionNumber(context), "Attachment",dataSend);
+
+            Utility.getRestClient().sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+                @Override
+                public void onSuccess(RestRequest request, final RestResponse result) {
+                    result.consumeQuietly(); // consume before going back to main thread
+                    ((Activity)context).runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(result.isSuccess()){
+                                try {
+                                    listener.onObject(true,result.asJSONObject(),null);
+                                } catch (JSONException e) {
+                                    listener.onObject(false,null,e.getMessage());
+                                } catch (IOException e) {
+                                    listener.onObject(false,null,e.getMessage());
+                                }
                             }else{
                                 listener.onObject(false,null,null);
                             }

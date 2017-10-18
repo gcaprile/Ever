@@ -22,6 +22,7 @@ public class CheckPointData implements Parcelable{
     private String  mAddress;
     private String  mContactName;
     private boolean mUpdateAddress;
+    private String  mWorkOrderNumber;
 
     public CheckPointData(){
     }
@@ -40,6 +41,7 @@ public class CheckPointData implements Parcelable{
         mAddress = in.readString();
         mContactName = in.readString();
         mUpdateAddress = in.readByte() != 0;
+        mWorkOrderNumber = in.readString();
     }
 
     @Override
@@ -56,6 +58,7 @@ public class CheckPointData implements Parcelable{
         dest.writeString(mAddress);
         dest.writeString(mContactName);
         dest.writeByte((byte) (mUpdateAddress ? 1 : 0));
+        dest.writeString(mWorkOrderNumber);
     }
 
     @Override
@@ -169,5 +172,13 @@ public class CheckPointData implements Parcelable{
 
     public void setUpdateAddress(boolean updateAddress) {
         this.mUpdateAddress = updateAddress;
+    }
+
+    public String getWorkOrderNumber() {
+        return mWorkOrderNumber;
+    }
+
+    public void setWorkOrderNumber(String workOrderNumber) {
+        this.mWorkOrderNumber = workOrderNumber;
     }
 }

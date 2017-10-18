@@ -1,5 +1,12 @@
 package com.app.checkinmap.model;
 
+import android.util.Log;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
@@ -72,5 +79,33 @@ public class Route extends RealmObject {
 
     public void setTypeId(String typeId) {
         this.typeId = typeId;
+    }
+
+    public String getStartDateSalesForceDate() {
+        String date ="";
+        DateFormat inputDf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        DateFormat ouputDf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.000Z");
+        try {
+            Date checkInDate = inputDf.parse(getStartDate());
+            date = ouputDf.format(checkInDate);
+            Log.d(" startDate",date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return date;
+    }
+
+    public String getEndDateSalesForceDate() {
+        String date ="";
+        DateFormat inputDf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        DateFormat ouputDf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.000Z");
+        try {
+            Date checkOutDate = inputDf.parse(getEndDate());
+            date = ouputDf.format(checkOutDate);
+            Log.d("endDate",date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return date;
     }
 }

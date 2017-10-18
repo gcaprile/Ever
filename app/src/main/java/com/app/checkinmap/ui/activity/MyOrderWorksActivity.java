@@ -171,7 +171,7 @@ public class MyOrderWorksActivity extends AppCompatActivity implements WorkOrder
                 mPgBar.setVisibility(View.GONE);
                 if(success){
 
-                    //Utility.logLargeString("ordenes de trabajo: "+jsonObject.toString());
+                    Utility.logLargeString("ordenes de trabajo: "+jsonObject.toString());
 
                     try {
                         Type listType = new TypeToken<List<WorkOrder>>() {}.getType();
@@ -218,13 +218,11 @@ public class MyOrderWorksActivity extends AppCompatActivity implements WorkOrder
             checkPointData.setContactName(workOrder.getWorkOrderDetail().getContactName());
             checkPointData.setIsMainTechnical(workOrder.isIsPrincipal());
             checkPointData.setMainTechnicalId(workOrder.getTechnicalId());
+            checkPointData.setWorkOrderNumber(workOrder.getWorkOrderDetail().getWorkOrderNumber());
             checkPointData.setCheckPointType(3);
             if(workOrder.getWorkOrderDetail().getWorkOrderAddress()!=null){
                 checkPointData.setAddress(workOrder.getWorkOrderDetail().getWorkOrderAddress().getAddress());
-            }else{
-                checkPointData.setAddress("");
-            }
-            if(workOrder.getWorkOrderDetail().getWorkOrderAddress()!=null){
+                checkPointData.setAddressId(workOrder.getWorkOrderDetail().getWorkOrderAddress().getId());
                 checkPointData.setName(workOrder.getWorkOrderDetail().getWorkOrderNumber()+"-"+workOrder.getWorkOrderDetail().getWorkOrderAddress().getCountry());
 
                 if(workOrder.getWorkOrderDetail().getWorkOrderAddress().getCoordinates()!=null){
@@ -235,8 +233,12 @@ public class MyOrderWorksActivity extends AppCompatActivity implements WorkOrder
                     checkPointData.setLongitude(0);
                 }
             }else{
+                checkPointData.setAddress("");
                 checkPointData.setName(workOrder.getWorkOrderDetail().getWorkOrderNumber());
+                checkPointData.setLatitude(0);
+                checkPointData.setLongitude(0);
             }
+
 
             //Here we start the check flow
             startCheckPointFlow(checkPointData);

@@ -19,6 +19,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.db.DatabaseManager;
 import com.app.checkinmap.model.CheckPointLocation;
+import com.app.checkinmap.model.Route;
 import com.app.checkinmap.model.UserLocation;
 import com.app.checkinmap.ui.adapter.HistoryAdapterList;
 import com.app.checkinmap.util.PreferenceManager;
@@ -112,9 +113,27 @@ public class HistoryActivity extends AppCompatActivity {
      */
     public String getRoutDistance(){
         String routeDistance="";
-        float distance=0;
+        double distance=0.00;
 
+        List<UserLocation> userLocations = DatabaseManager.getInstance().getUserLocationList(PreferenceManager.getInstance(this).getRouteId());
         List<CheckPointLocation> checkPointLocations = getCheckPointLocations();
+
+        if(userLocations.size()>0){
+
+            Location locationRouteStart = new Location("");
+            locationRouteStart.setLongitude(userLocations.get(0).getLongitude());
+            locationRouteStart.setLatitude(userLocations.get(0).getLatitude());
+
+            if(checkPointLocations.size()>0){
+
+                Location locationRouteFirstPoint = new Location("");
+                locationRouteFirstPoint.setLongitude(checkPointLocations.get(0).getCheckInLongitude());
+                locationRouteFirstPoint.setLatitude(checkPointLocations.get(0).getCheckInLatitude());
+
+                 /*First distance in the route*/
+                distance = distance + locationRouteStart.distanceTo(locationRouteFirstPoint);
+            }
+        }
 
         for(int i=0;i<checkPointLocations.size();i++){
             if((i+1)<checkPointLocations.size()){
@@ -134,7 +153,7 @@ public class HistoryActivity extends AppCompatActivity {
             }
         }
 
-        routeDistance = String.format("%.2f", (distance/1000))+" Km";
+        routeDistance = String.format("%.2f", (distance/1000.00))+" Km";
         return routeDistance;
     }
 

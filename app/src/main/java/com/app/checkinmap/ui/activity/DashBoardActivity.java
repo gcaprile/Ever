@@ -55,7 +55,9 @@ import com.squareup.otto.Subscribe;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -692,6 +694,7 @@ public class DashBoardActivity extends AppCompatActivity
                     Route toEdit = realm.where(Route.class)
                             .equalTo("id", PreferenceManager.getInstance(getApplicationContext()).getRouteId()).findFirst();
                     toEdit.setEndDate(Utility.getCurrentDate());
+                    toEdit.setMileage(getRoutDistanceKm());
                     realm.copyToRealmOrUpdate(toEdit);
 
                     /*Here we send the data to sales force*/
@@ -832,7 +835,15 @@ public class DashBoardActivity extends AppCompatActivity
                                 if(visits.get(position).isUpdateAddress()){
                                        updateAddressLocation(visits,routeId,position);
                                 }else{
-                                    sendVisitToSalesForce(visits,routeId,position+1);
+                                    if(visits.get(position).getRecordType().compareTo("0126A000000l3D4QAI")==0){
+                                        if(visits.get(position).isMainTechnical()){
+                                            sendSingImage(visits.get(position).getWorkOrderId(),visits,routeId,position);
+                                        }else{
+                                            sendVisitToSalesForce(visits,routeId,position+1);
+                                        }
+                                    }else{
+                                        sendVisitToSalesForce(visits,routeId,position+1);
+                                    }
                                 }
                             }else{
                                 showMessage(R.string.text_route_no_saved);
@@ -861,25 +872,115 @@ public class DashBoardActivity extends AppCompatActivity
      * in sales force
      */
     public void updateAddressLocation(final List<CheckPointLocation> visits, final String routeId, final int position){
-        String addressId = visits.get(position).getAddressId();
+
+        String objectId;
+        String objectName;
+        HashMap<String,Object> dataSend = new HashMap<>();
         double latitude = visits.get(position).getLatitude();
         double longitude = visits.get(position).getLongitude();
 
-        Log.d("addresId",String.valueOf(addressId));
-        Log.d("latitude",String.valueOf(latitude));
-        Log.d("longitude",String.valueOf(longitude));
+        if(visits.get(position).getRecordType().compareTo("0126A000000l3CzQAI")==0){
+            objectId= visits.get(position).getLeadId();
+            objectName = "Lead";
+            dataSend.put("Latitude",latitude);
+            dataSend.put("Longitude",longitude);
+        }else{
+            objectId = visits.get(position).getAddressId();
+            objectName = "Direcciones__c";
+            dataSend.put("Coordenadas__Latitude__s",latitude);
+            dataSend.put("Coordenadas__Longitude__s",longitude);
+        }
 
-
-        ApiManager.getInstance().updateAddressCoordinates(this, addressId, latitude, longitude, new ApiManager.OnObjectListener() {
+        ApiManager.getInstance().updateAddressCoordinates(this, objectId,objectName,dataSend, new ApiManager.OnObjectListener() {
             @Override
             public void onObject(boolean success, JSONObject jsonObject, String errorMessage) {
+
                 if(success){
-                    sendVisitToSalesForce(visits,routeId,position+1);
+                    if(visits.get(position).getRecordType().compareTo("0126A000000l3D4QAI")==0){
+                        if(visits.get(position).isMainTechnical()){
+                            sendSingImage(visits.get(position).getWorkOrderId(),visits,routeId,position);
+                        }else{
+                            sendVisitToSalesForce(visits,routeId,position+1);
+                        }
+                    }else{
+                        sendVisitToSalesForce(visits,routeId,position+1);
+                    }
                 }else{
                     showMessage(R.string.text_route_no_saved);
                     hideProgressDialog();
                 }
             }
         });
+    }
+
+
+    /**
+     * This method help us to update the address object
+     * in sales force
+     */
+    public void sendSingImage(String workOrderId,final List<CheckPointLocation> visits, final String routeId, final int position){
+        File file = new File(visits.get(position).getSignatureFilePath());
+
+        ApiManager.getInstance().sendSingToSalesForce(this, workOrderId,file.getPath(), file.getName(), new ApiManager.OnObjectListener() {
+            @Override
+            public void onObject(boolean success, JSONObject jsonObject, String errorMessage) {
+                if(success){
+                    Utility.logLargeString("json imagen "+jsonObject.toString());
+                    sendVisitToSalesForce(visits,routeId,position+1);
+                }else{
+                    Utility.logLargeString("Error guardando imagen");
+                    showMessage(R.string.text_route_no_saved);
+                    hideProgressDialog();
+                }
+            }
+        });
+    }
+
+    /**
+     * This method help su to calculate
+     * the route distance
+     */
+    public double getRoutDistanceKm(){
+        double distance=0.0;
+
+        List<UserLocation> userLocations = DatabaseManager.getInstance().getUserLocationList(PreferenceManager.getInstance(this).getRouteId());
+        List<CheckPointLocation> checkPointLocations = DatabaseManager.getInstance().getCheckPointLocationList(PreferenceManager.getInstance(this).getRouteId());
+
+        if(userLocations.size()>0){
+
+            Location locationRouteStart = new Location("");
+            locationRouteStart.setLongitude(userLocations.get(0).getLongitude());
+            locationRouteStart.setLatitude(userLocations.get(0).getLatitude());
+
+            if(checkPointLocations.size()>0){
+
+                Location locationRouteFirstPoint = new Location("");
+                locationRouteFirstPoint.setLongitude(checkPointLocations.get(0).getCheckInLongitude());
+                locationRouteFirstPoint.setLatitude(checkPointLocations.get(0).getCheckInLatitude());
+
+                 /*First distance in the route*/
+                distance = distance + locationRouteStart.distanceTo(locationRouteFirstPoint);
+            }
+        }
+
+        for(int i=0;i<checkPointLocations.size();i++){
+            if((i+1)<checkPointLocations.size()){
+                CheckPointLocation userLocationA = checkPointLocations.get(i);
+                CheckPointLocation userLocationB = checkPointLocations.get(i+1);
+
+                Location locationA = new Location("");
+                Location locationB = new Location("");
+
+                locationA.setLongitude(userLocationA.getCheckInLongitude());
+                locationA.setLatitude(userLocationA.getCheckInLatitude());
+
+                locationB.setLongitude(userLocationB.getCheckInLongitude());
+                locationB.setLatitude(userLocationB.getCheckInLatitude());
+
+                distance = distance + locationA.distanceTo(locationB);
+            }
+        }
+
+        return (distance/1000.00);
     }
 }

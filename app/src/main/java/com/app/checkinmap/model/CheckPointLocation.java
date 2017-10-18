@@ -45,6 +45,16 @@ public class CheckPointLocation extends RealmObject {
     private double visitTimeNumber;
     private double travelTimeNumber;
     private boolean updateAddress;
+    private boolean isMainTechnical;
+    private String  signatureFilePath;
+
+    public String getSignatureFilePath() {
+        return signatureFilePath;
+    }
+
+    public void setSignatureFilePath(String signatureFilePath) {
+        this.signatureFilePath = signatureFilePath;
+    }
 
     public double getLatitude() {
         return latitude;
@@ -260,6 +270,14 @@ public class CheckPointLocation extends RealmObject {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public boolean isMainTechnical() {
+        return isMainTechnical;
+    }
+
+    public void setMainTechnical(boolean mainTechnical) {
+        isMainTechnical = mainTechnical;
     }
 
     public String getCheckInDateSalesForceDate() {

@@ -193,7 +193,7 @@ public class Utility {
      * for the visit
      */
     public static double getDurationInHoursNumber(String dateStart,String dateFinish){
-        double totalTime=0;
+        double totalTime= 0.000;
 
         //HH converts hour in 24 hours format (0-23), day calculation
         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
@@ -213,7 +213,9 @@ public class Utility {
             long diffHours = diff / (60 * 60 * 1000) % 24;
             // long diffDays = diff / (24 * 60 * 60 * 1000);
 
-            totalTime = diffHours + (diffMinutes/60);
+            totalTime = diffHours;
+
+            totalTime = totalTime + (diffMinutes/60.0);
 
         } catch (Exception e) {
             e.printStackTrace();

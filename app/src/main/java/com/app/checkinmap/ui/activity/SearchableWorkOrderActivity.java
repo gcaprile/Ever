@@ -223,16 +223,15 @@ public class SearchableWorkOrderActivity extends AppCompatActivity implements Wo
             checkPointData.setId(workOrder.getWorkOrderId());
             checkPointData.setContactId(workOrder.getWorkOrderDetail().getContactId());
             checkPointData.setContactName(workOrder.getWorkOrderDetail().getContactName());
+            checkPointData.setWorkOrderNumber(workOrder.getWorkOrderDetail().getWorkOrderNumber());
             checkPointData.setIsMainTechnical(workOrder.isIsPrincipal());
             checkPointData.setMainTechnicalId(workOrder.getTechnicalId());
             checkPointData.setCheckPointType(3);
             if(workOrder.getWorkOrderDetail().getWorkOrderAddress()!=null){
                 checkPointData.setAddress(workOrder.getWorkOrderDetail().getWorkOrderAddress().getAddress());
-            }else{
-                checkPointData.setAddress("");
-            }
-            if(workOrder.getWorkOrderDetail().getWorkOrderAddress()!=null){
+                checkPointData.setAddressId(workOrder.getWorkOrderDetail().getWorkOrderAddress().getId());
                 checkPointData.setName(workOrder.getWorkOrderDetail().getWorkOrderNumber()+"-"+workOrder.getWorkOrderDetail().getWorkOrderAddress().getCountry());
+
                 if(workOrder.getWorkOrderDetail().getWorkOrderAddress().getCoordinates()!=null){
                     checkPointData.setLatitude(workOrder.getWorkOrderDetail().getWorkOrderAddress().getCoordinates().getLatitude());
                     checkPointData.setLongitude(workOrder.getWorkOrderDetail().getWorkOrderAddress().getCoordinates().getLongitude());
@@ -241,8 +240,12 @@ public class SearchableWorkOrderActivity extends AppCompatActivity implements Wo
                     checkPointData.setLongitude(0);
                 }
             }else{
+                checkPointData.setAddress("");
                 checkPointData.setName(workOrder.getWorkOrderDetail().getWorkOrderNumber());
+                checkPointData.setLatitude(0);
+                checkPointData.setLongitude(0);
             }
+
 
                         /*Here we notify the result*/
             Intent intent= new Intent();
