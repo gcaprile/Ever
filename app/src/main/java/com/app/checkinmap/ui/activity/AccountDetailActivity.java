@@ -187,7 +187,7 @@ public class AccountDetailActivity extends AppCompatActivity implements AddressA
 
             /*Here we create the check point data*/
             CheckPointData checkPointData = new CheckPointData();
-            checkPointData.setId(accountAddress.getAccountId());
+            checkPointData.setId(mAccount.getId());
             checkPointData.setName(mAccount.getName());
             checkPointData.setLatitude(accountAddress.getLatitude());
             checkPointData.setLongitude(accountAddress.getLongitude());

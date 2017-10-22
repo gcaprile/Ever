@@ -127,7 +127,7 @@ public class MyLeadsActivity extends AppCompatActivity implements LeadAdapterLis
      * sales force
      */
     public void getLeadFromSalesForce(){
-        String osql = "SELECT Id, Name, Company, Street, City, State, PostalCode, Country, Pais__c, Latitude, Longitude" +
+        String osql = "SELECT Id, Name, Phone, Company, Street, City, State, PostalCode, Country, Pais__c, Latitude, Longitude" +
                 " FROM Lead WHERE Pais__c = '"+Utility.getUserCountry()+"'";
 
         ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {

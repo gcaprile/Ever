@@ -122,14 +122,17 @@ public class MyAccountsActivity extends AppCompatActivity implements AccountAdap
      * sales force
      */
     public void getAccountFromSalesForce(){
-        String osql = "SELECT Id, Name, Phone, Emasal_Address__c, Pais__c, Description FROM Account order by Id";
+        //String osql = "SELECT Id, Name, Phone, Emasal_Address__c, Pais__c, Description FROM Account order by Id";
+
+        String osql ="SELECT Id, Name, Phone, BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry, Description FROM Account order by Id";
+
         ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
             @Override
             public void onObject(boolean success, JSONObject jsonObject, String errorMessage) {
                 /*Here we hide the progress bar*/
                 mPgBar.setVisibility(View.GONE);
                 if(success){
-                    Utility.logLargeString(jsonObject.toString());
+                    Utility.logLargeString("Cuentas: "+jsonObject.toString());
                     try {
                         Type listType = new TypeToken<List<Account>>() {}.getType();
                         List<Account> accountList = new Gson().fromJson(jsonObject.getJSONArray("records").toString(), listType);

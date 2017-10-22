@@ -3,6 +3,8 @@ package com.app.checkinmap.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * This class help us to handle all the data
  * about the check point to register in the map
@@ -10,23 +12,53 @@ import android.os.Parcelable;
 
 public class CheckPointData implements Parcelable{
 
+    @SerializedName("id")
     private String  mId;
+
+    @SerializedName("name")
     private String  mName;
+
+    @SerializedName("check_point_type")
     private int     mCheckPointType;
+
+    @SerializedName("latitude")
     private double  mLatitude;
+
+    @SerializedName("longitude")
     private double  mLongitude;
+
+    @SerializedName("is_main_technical")
     private boolean mIsMainTechnical;
+
+    @SerializedName("address_id")
     private String  mAddressId;
+
+    @SerializedName("contact_id")
     private String  mContactId;
+
+    @SerializedName("main_technical_id")
     private String  mMainTechnicalId;
+
+    @SerializedName("address")
     private String  mAddress;
+
+    @SerializedName("contact_name")
     private String  mContactName;
+
+    @SerializedName("update_address")
     private boolean mUpdateAddress;
+
+    @SerializedName("work_order_number")
     private String  mWorkOrderNumber;
+
+    @SerializedName("user_latitude")
+    private double mUserLatitude;
+
+    @SerializedName("user_longitude")
+    private double mUserLongitude;
 
     public CheckPointData(){
     }
-
 
     protected CheckPointData(Parcel in) {
         mId = in.readString();
@@ -42,28 +74,8 @@ public class CheckPointData implements Parcelable{
         mContactName = in.readString();
         mUpdateAddress = in.readByte() != 0;
         mWorkOrderNumber = in.readString();
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mId);
-        dest.writeString(mName);
-        dest.writeInt(mCheckPointType);
-        dest.writeDouble(mLatitude);
-        dest.writeDouble(mLongitude);
-        dest.writeByte((byte) (mIsMainTechnical ? 1 : 0));
-        dest.writeString(mAddressId);
-        dest.writeString(mContactId);
-        dest.writeString(mMainTechnicalId);
-        dest.writeString(mAddress);
-        dest.writeString(mContactName);
-        dest.writeByte((byte) (mUpdateAddress ? 1 : 0));
-        dest.writeString(mWorkOrderNumber);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
+        mUserLatitude = in.readDouble();
+        mUserLongitude = in.readDouble();
     }
 
     public static final Creator<CheckPointData> CREATOR = new Creator<CheckPointData>() {
@@ -180,5 +192,45 @@ public class CheckPointData implements Parcelable{
 
     public void setWorkOrderNumber(String workOrderNumber) {
         this.mWorkOrderNumber = workOrderNumber;
+    }
+
+    public double getUserLatitude() {
+        return mUserLatitude;
+    }
+
+    public void setUserLatitude(double userLatitude) {
+        this.mUserLatitude = userLatitude;
+    }
+
+    public double getUserLongitude() {
+        return mUserLongitude;
+    }
+
+    public void setUserLongitude(double userLongitude) {
+        this.mUserLongitude = userLongitude;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(mId);
+        parcel.writeString(mName);
+        parcel.writeInt(mCheckPointType);
+        parcel.writeDouble(mLatitude);
+        parcel.writeDouble(mLongitude);
+        parcel.writeByte((byte) (mIsMainTechnical ? 1 : 0));
+        parcel.writeString(mAddressId);
+        parcel.writeString(mContactId);
+        parcel.writeString(mMainTechnicalId);
+        parcel.writeString(mAddress);
+        parcel.writeString(mContactName);
+        parcel.writeByte((byte) (mUpdateAddress ? 1 : 0));
+        parcel.writeString(mWorkOrderNumber);
+        parcel.writeDouble(mUserLatitude);
+        parcel.writeDouble(mUserLongitude);
     }
 }

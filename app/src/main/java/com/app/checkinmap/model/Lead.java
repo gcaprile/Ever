@@ -18,6 +18,9 @@ public class Lead implements Parcelable{
     @SerializedName("Name")
     private String mName;
 
+    @SerializedName("Phone")
+    private String mPhone;
+
     @SerializedName("Company")
     private String mCompany;
 
@@ -53,6 +56,7 @@ public class Lead implements Parcelable{
         mCountry = in.readString();
         mLatitude = in.readDouble();
         mLongitude = in.readDouble();
+        mPhone = in.readString();
     }
 
     public static final Creator<Lead> CREATOR = new Creator<Lead>() {
@@ -84,6 +88,7 @@ public class Lead implements Parcelable{
         parcel.writeString(mCountry);
         parcel.writeDouble(mLatitude);
         parcel.writeDouble(mLongitude);
+        parcel.writeString(mPhone);
     }
 
     public String getId() {
@@ -166,6 +171,14 @@ public class Lead implements Parcelable{
         this.mLongitude = longitude;
     }
 
+    public String getPhone() {
+        return mPhone;
+    }
+
+    public void setPhone(String phone) {
+        this.mPhone = phone;
+    }
+
     public String getAddress(){
         String address = "";
         if(mStreet!=null){
@@ -186,7 +199,7 @@ public class Lead implements Parcelable{
 
 
         if(mCountry!=null){
-            address = address + mCountry+", ";
+            address = address + mCountry;
         }
         return address;
     }

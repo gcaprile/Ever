@@ -11,6 +11,7 @@ import com.google.gson.annotations.SerializedName;
  */
 
 public class Account  implements Parcelable{
+
     @SerializedName("Id")
     private String mId;
 
@@ -20,15 +21,23 @@ public class Account  implements Parcelable{
     @SerializedName("Phone")
     private String mPhone;
 
-    @SerializedName("Emasal_Address__c")
-    private String mAddress;
+    @SerializedName("BillingStreet")
+    private String mStreet;
 
-    @SerializedName("Pais__c")
+    @SerializedName("BillingCity")
+    private String mCity;
+
+    @SerializedName("BillingState")
+    private String mState;
+
+    @SerializedName("BillingPostalCode")
+    private String mPostalCode;
+
+    @SerializedName("BillingCountry")
     private String mCountry;
 
     @SerializedName("Description")
     private String mDescription;
-
 
     public String getId() {
         return mId;
@@ -54,12 +63,36 @@ public class Account  implements Parcelable{
         this.mPhone = phone;
     }
 
-    public String getAddress() {
-        return mAddress;
+    public String getStreet() {
+        return mStreet;
     }
 
-    public void setAddress(String address) {
-        this.mAddress = address;
+    public void setStreet(String street) {
+        this.mStreet = street;
+    }
+
+    public String getCity() {
+        return mCity;
+    }
+
+    public void setCity(String city) {
+        this.mCity = city;
+    }
+
+    public String getState() {
+        return mState;
+    }
+
+    public void setState(String state) {
+        this.mState = state;
+    }
+
+    public String getPostalCode() {
+        return mPostalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.mPostalCode = postalCode;
     }
 
     public String getCountry() {
@@ -78,13 +111,58 @@ public class Account  implements Parcelable{
         this.mDescription = description;
     }
 
+    public String getAddress(){
+        String address ="";
+        if(mStreet!=null){
+            address = address + mStreet+", ";
+        }
+
+        if(mCity!=null){
+            address = address + mCity+", ";
+        }
+
+        if(mState!=null){
+            address = address + mState+", ";
+        }
+
+        if(mPostalCode!=null){
+            address = address + mPostalCode+", ";
+        }
+
+        if(mCountry!=null){
+            address = address + mCountry;
+        }
+        return address;
+    }
+
     protected Account(Parcel in) {
         mId = in.readString();
         mName = in.readString();
         mPhone = in.readString();
-        mAddress = in.readString();
+        mStreet = in.readString();
+        mCity = in.readString();
+        mState = in.readString();
+        mPostalCode = in.readString();
         mCountry = in.readString();
         mDescription = in.readString();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mId);
+        dest.writeString(mName);
+        dest.writeString(mPhone);
+        dest.writeString(mStreet);
+        dest.writeString(mCity);
+        dest.writeString(mState);
+        dest.writeString(mPostalCode);
+        dest.writeString(mCountry);
+        dest.writeString(mDescription);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     public static final Creator<Account> CREATOR = new Creator<Account>() {
@@ -98,19 +176,4 @@ public class Account  implements Parcelable{
             return new Account[size];
         }
     };
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(mId);
-        parcel.writeString(mName);
-        parcel.writeString(mPhone);
-        parcel.writeString(mAddress);
-        parcel.writeString(mCountry);
-        parcel.writeString(mDescription);
-    }
 }

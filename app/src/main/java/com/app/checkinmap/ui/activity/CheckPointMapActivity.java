@@ -21,6 +21,7 @@ import android.view.View;
 import android.widget.Chronometer;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -59,7 +60,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
@@ -71,11 +75,11 @@ import static com.app.checkinmap.ui.activity.SignatureActivity.ARG_SING_FILE_PAT
 
 public class CheckPointMapActivity extends AppCompatActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback{
 
-    public static final int  REQUEST_CHECK_IN =             79;
-    public static final int  PERMISSION_LOCATION_REQUEST =  12;
-    public static final int  SIGNATURE_REQUEST =            15;
-    public static String     ARG_CHECK_POINT_DATA=          "check_point_data";
-    public static final int  CHECK_DISTANCE =               500;
+    public static final int    REQUEST_CHECK_IN =             79;
+    public static final int    PERMISSION_LOCATION_REQUEST =  12;
+    public static final int    SIGNATURE_REQUEST =            15;
+    public static String       ARG_CHECK_POINT_DATA=          "check_point_data";
+    public static final int    CHECK_DISTANCE =               500;
     public static final String ARG_CHECK_POINT_LOCATION_ID= "check_point_location_id";
 
     @BindView(R.id.linear_layout_check_progress)
@@ -122,9 +126,14 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
 
         ButterKnife.bind(this);
 
-        /*Here we get the account address */
-        mCheckPointData = getIntent().getExtras().getParcelable(ARG_CHECK_POINT_DATA);
-
+        /*We check if the app come from background*/
+        if(PreferenceManager.getInstance(this).isDoingCheckIn()){
+            mCheckPointData = new Gson().fromJson(PreferenceManager.getInstance(this).getCheckPointData(),CheckPointData.class);
+            mCheckPointLocation = new Gson().fromJson(PreferenceManager.getInstance(this).getCheckPointLocation(),CheckPointLocation.class);
+        }else{
+            /*Here we get the account address */
+            mCheckPointData = getIntent().getExtras().getParcelable(ARG_CHECK_POINT_DATA);
+        }
 
         if(getSupportActionBar() != null){
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -294,7 +303,6 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 statusName = "In Process";
             }else{
                 statusName = "Finalizada Tecnico";
-                //statusName = "In Process";
             }
 
             /*Here we update the work order status*/
@@ -318,9 +326,14 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
       }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        BusProvider.getInstance().register(this);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
-        BusProvider.getInstance().register(this);
         if(mLocationSettingCalled){
             mLocationSettingCalled=false;
             if(isGpsEnable()){
@@ -332,8 +345,8 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStop() {
+        super.onStop();
         BusProvider.getInstance().unregister(this);
     }
 
@@ -342,6 +355,11 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
         Log.d("LOCATION LAT:" , String.valueOf(newLocationEvent.getLat()));
         Log.d("LOCATION LON:" , String.valueOf(newLocationEvent.getLon()));
 
+        /*Here we sav the user location to future use*/
+        mCheckPointData.setUserLatitude(newLocationEvent.getLat());
+        mCheckPointData.setUserLongitude(newLocationEvent.getLon());
+
+        /*Here we draw the location in the map*/
         drawUserAndAccountLocation(newLocationEvent.getLat(),newLocationEvent.getLon());
     }
 
@@ -576,6 +594,16 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 .positiveText(R.string.accept)
                 .positiveColorRes(R.color.colorPrimary)
                 .cancelable(false)
+                .negativeText(R.string.cancel)
+                .negativeColorRes(R.color.colorPrimary)
+                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.cancel();
+                       restartCheckInUi();
+
+                    }
+                })
                 .show();
     }
 
@@ -722,7 +750,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
 
     public void finishCheckIn(){
          /*Here we return to route mode*/
-        PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(true);
+        PreferenceManager.getInstance(getApplicationContext()).setIsDoingCheckIn(false);
 
         Intent dataIntent = new Intent();
         dataIntent.putExtra(ARG_CHECK_POINT_LOCATION_ID,mCheckPointLocation.getId());
@@ -733,8 +761,8 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
     }
 
     /**
-     * This method help us to drew in the map the
-     * user location and the account/order work
+     * This method help us to draw in the map the
+     * user location and the account/work order
      * location
      */
     public void drawUserAndAccountLocation(double userLatitude, double userLongitude){
@@ -752,8 +780,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
             circleOptions.center(new LatLng(userLatitude,userLongitude));
             circleOptions.radius(CHECK_DISTANCE);
             circleOptions.fillColor(R.color.colorBlackTransparent);
-            //circleOptions.strokeColor(R.color.colorBlue);
-             circleOptions.strokeWidth(0.1f);
+            circleOptions.strokeWidth(0.1f);
             mCircle = mMap.addCircle(circleOptions);
 
             /*Here we update the user location in the map*/
@@ -793,39 +820,70 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
 
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                         new LatLng(mCheckPointData.getLatitude(),
-                                mCheckPointData.getLongitude()), 13));
-            }else{
-                int padding=60;// offset from edges of the map in pixels
+                                mCheckPointData.getLongitude()), 15));
 
-              /*Here we update the account location*/
+            }else{
+
+                /*Here we update the account location*/
                 mMap.addMarker(
                         new MarkerOptions()
                                 .position(new LatLng(mCheckPointData.getLatitude(), mCheckPointData.getLongitude()))
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
 
-                LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                builder.include(new LatLng(userLatitude,userLongitude));
-                builder.include(new LatLng(mCheckPointData.getLatitude(),mCheckPointData.getLongitude()));
-                LatLngBounds bounds = builder.build();
-
-
-                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-
-                mMap.animateCamera(cameraUpdate);
-            }
-
-            if(!mBtnCheck.isShown()){
-                if(!mIsChecking){
-                    mBtnCheck.setVisibility(View.VISIBLE);
+                /*Here we decide the zoom level in the map*/
+                if(isInRadius(userLatitude,userLongitude)){
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                            new LatLng(mCheckPointData.getLatitude(),
+                                    mCheckPointData.getLongitude()), 15));
+                }else{
+                    LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                    builder.include(new LatLng(userLatitude,userLongitude));
+                    builder.include(new LatLng(mCheckPointData.getLatitude(),mCheckPointData.getLongitude()));
+                    LatLngBounds bounds = builder.build();
+                    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 60);
+                    mMap.animateCamera(cameraUpdate);
                 }
             }
 
-            if(mMapProgress.isShown()){
-                mMapProgress.setVisibility(View.GONE);
+            /*Here we update the button */
+            if(PreferenceManager.getInstance(this).isDoingCheckIn()){
+                restartCheckInProgressUi();
+            }else{
+                if(!mBtnCheck.isShown()){
+                    if(!mIsChecking){
+                        mBtnCheck.setVisibility(View.VISIBLE);
+                    }
+                }
+
+                if(mMapProgress.isShown()){
+                    mMapProgress.setVisibility(View.GONE);
+                }
             }
         }
     }
 
+    /**
+     * This method help us to set all the check in
+     * progress ui
+     */
+    public void restartCheckInProgressUi(){
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            Date saveDate =    sdf.parse(mCheckPointLocation.getCheckInDate());
+            Date currentDate = sdf.parse(Utility.getCurrentDate());
+
+            long baseTime = SystemClock.elapsedRealtime()-(currentDate.getTime() - saveDate.getTime());
+            mChronometer.setBase(baseTime);
+            mChronometer.start();
+            mMapProgress.setVisibility(View.GONE);
+            mBtnCheck.setText(R.string.finalize);
+            mBtnCheck.setVisibility(View.VISIBLE);
+            mLnlCheckProgress.setVisibility(View.VISIBLE);
+            mIsChecking = true;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
     /**
      * This method help us to check if the user location
      * and account address location are in the correct
@@ -867,10 +925,16 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                 mMapProgress.setVisibility(View.GONE);
                 if(success){
                     try {
-                        Utility.logLargeString(jsonObject.toString());
+                        Utility.logLargeString("Account id: "+mCheckPointData.getId());
+                        Utility.logLargeString("Contactos: "+jsonObject.toString());
                         Type listType = new TypeToken<List<Contact>>() {}.getType();
                         List<Contact> contactList = new Gson().fromJson(jsonObject.getJSONArray("records").toString(), listType);
-                        showContactListMessage(contactList);
+                        if(contactList.size()>0){
+                            showContactListMessage(contactList);
+                        }else{
+                            restartCheckInUi();
+                            showMessage(getString(R.string.no_contacts));
+                        }
                     } catch (JSONException e) {
                         restartCheckInUi();
                         showMessage(getString(R.string.contact_list_no_got));
@@ -913,6 +977,15 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                     .widgetColorRes(R.color.colorPrimary)
                     .positiveText(R.string.accept)
                     .positiveColorRes(R.color.colorPrimary)
+                    .negativeText(R.string.cancel)
+                    .negativeColorRes(R.color.colorPrimary)
+                    .onNegative(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                            dialog.dismiss();
+                            restartCheckInUi();
+                        }
+                    })
                     .cancelable(false)
                     .show();
         }else{
@@ -934,7 +1007,9 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
         mLnlCheckProgress.setVisibility(View.VISIBLE);
         mBtnCheck.setText(R.string.finalize);
         mBtnCheck.setVisibility(View.VISIBLE);
-        PreferenceManager.getInstance(getApplicationContext()).setIsInRoute(false);
+        PreferenceManager.getInstance(this).setIsDoingCheckIn(true);
+        PreferenceManager.getInstance(this).setCheckPointData(new Gson().toJson(mCheckPointData));
+        PreferenceManager.getInstance(this).setCheckPointLocation(new Gson().toJson(mCheckPointLocation));
     }
 
 
@@ -989,5 +1064,14 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
         /*Here we request the user location to finalize the check*/
         mIsChecking=false;
         getUserLocation();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(PreferenceManager.getInstance(this).isDoingCheckIn()){
+            checkUserLocation();
+        }else{
+            super.onBackPressed();
+        }
     }
 }

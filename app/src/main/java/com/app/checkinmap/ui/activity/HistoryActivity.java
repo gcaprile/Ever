@@ -162,7 +162,7 @@ public class HistoryActivity extends AppCompatActivity {
      * used in the route
      */
     public String getRouteTime(){
-        String time ="";
+        String time ="0 horas";
 
         List<CheckPointLocation> userLocations = getCheckPointLocations();
 

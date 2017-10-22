@@ -43,9 +43,10 @@ public class LeadAdapterList extends RecyclerView.Adapter<LeadAdapterList.Accoun
 
     @Override
     public void onBindViewHolder(AccountViewHolder holder, int position) {
-        holder.tvTitle.setText(mLeadList.get(position).getName());
-        holder.tvSubTitle.setText(mLeadList.get(position).getCompany());
-        holder.tvDescription.setText(mLeadList.get(position).getAddress());
+        holder.tvName.setText(mLeadList.get(position).getName());
+        holder.tvCompany.setText(mLeadList.get(position).getCompany());
+        holder.tvPhone.setText(mLeadList.get(position).getPhone());
+        holder.tvAddress.setText(mLeadList.get(position).getAddress());
     }
 
     @Override
@@ -57,14 +58,17 @@ public class LeadAdapterList extends RecyclerView.Adapter<LeadAdapterList.Accoun
 
     class AccountViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
-        @BindView(R.id.text_view_title)
-        TextView tvTitle;
+        @BindView(R.id.text_view_name)
+        TextView tvName;
 
-        @BindView(R.id.text_view_sub_title)
-        TextView tvSubTitle;
+        @BindView(R.id.text_view_company)
+        TextView tvCompany;
 
-        @BindView(R.id.text_view_description)
-        TextView tvDescription;
+        @BindView(R.id.text_view_phone)
+        TextView tvPhone;
+
+        @BindView(R.id.text_view_address)
+        TextView tvAddress;
 
         AccountViewHolder(View view){
             super(view);

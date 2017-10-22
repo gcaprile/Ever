@@ -50,6 +50,7 @@ public class AccountAdapterList extends RecyclerView.Adapter<AccountAdapterList.
     @Override
     public void onBindViewHolder(AccountViewHolder holder, int position) {
         holder.tvTitle.setText(mAccountList.get(position).getName());
+        holder.tvPhone.setText(mAccountList.get(position).getPhone());
         holder.tvDescription.setText(mAccountList.get(position).getAddress());
     }
 
@@ -62,8 +63,11 @@ public class AccountAdapterList extends RecyclerView.Adapter<AccountAdapterList.
 
     class AccountViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
-        @BindView(R.id.text_view_title)
+        @BindView(R.id.text_view_name)
         TextView tvTitle;
+
+        @BindView(R.id.text_view_phone)
+        TextView tvPhone;
 
         @BindView(R.id.text_view_description)
         TextView tvDescription;

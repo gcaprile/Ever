@@ -20,6 +20,7 @@ public class SplashScreenActivity extends SalesforceActivity {
     public static final String TAG = SplashScreenActivity.class.getName();
 
     public static final int SPLASH_SCREEN_TIME= 3000;
+    private boolean mIsFirstTime = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,10 +36,12 @@ public class SplashScreenActivity extends SalesforceActivity {
 
     @Override
     public void onResume(RestClient client) {
-        findViewById(R.id.root).setVisibility(View.VISIBLE);
-        Utility.setRestClient(client);
-
-        getUserProfileAndStar();
+        if(mIsFirstTime){
+            mIsFirstTime= false;
+            findViewById(R.id.root).setVisibility(View.VISIBLE);
+            Utility.setRestClient(client);
+            getUserProfileAndStar();
+        }
     }
 
     /**

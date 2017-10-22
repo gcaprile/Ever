@@ -114,7 +114,9 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         mNewLocationEventBus.setLat(location.getLatitude());
         mNewLocationEventBus.setLon(location.getLongitude());
         if(PreferenceManager.getInstance(this).isInRoute()){
-            saveLocation(location);
+            if(!PreferenceManager.getInstance(this).isDoingCheckIn()){
+                saveLocation(location);
+            }
         }
         BusProvider.getInstance().post(mNewLocationEventBus);
     }

@@ -57,7 +57,7 @@ public class AddressAdapterList extends RecyclerView.Adapter<AddressAdapterList.
 
     class AddressViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
-        @BindView(R.id.text_view_title)
+        @BindView(R.id.text_view_name)
         TextView tvTitle;
 
         @BindView(R.id.text_view_description)

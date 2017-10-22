@@ -2,6 +2,8 @@ package com.app.checkinmap.model;
 
 import android.util.Log;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,35 +19,92 @@ import io.realm.annotations.PrimaryKey;
  */
 
 public class CheckPointLocation extends RealmObject {
+    @SerializedName("id")
     @PrimaryKey
     private long   id;
+
+    @SerializedName("check_in_latitude")
     private double checkInLatitude;
+
+    @SerializedName("check_in_longitude")
     private double checkInLongitude;
+
+    @SerializedName("check_out_latitude")
     private double checkOutLatitude;
+
+    @SerializedName("check_out_longitude")
     private double checkOutLongitude;
+
+    @SerializedName("latitude")
     private double latitude;
+
+    @SerializedName("longitude")
     private double longitude;
+
+    @SerializedName("lead_id")
     private String leadId;
+
+    @SerializedName("work_order_contact_id")
     private String workOrderContactId;
+
+    @SerializedName("account_contact_id")
     private String accountContactId;
+
+    @SerializedName("address_id")
     private String addressId;
+
+    @SerializedName("check_in_date")
     private String checkInDate;
+
+    @SerializedName("check_out_date")
     private String checkOutDate;
+
+    @SerializedName("visit_time")
     private String visitTime;
+
+    @SerializedName("travel_time")
     private String travelTime;
+
+    @SerializedName("work_order_id")
     private String workOrderId;
+
+    @SerializedName("visit_type")
     private String visitType;
+
+    @SerializedName("description")
     private String description;
+
+    @SerializedName("route_id")
     private String routeId;
+
+    @SerializedName("name")
     private String name;
+
+    @SerializedName("technical_id")
     private String technicalId;
+
+    @SerializedName("record_type")
     private String recordType;
+
+    @SerializedName("account_contact_name")
     private String accountContactName;
+
+    @SerializedName("address")
     private String address;
+
+    @SerializedName("visit_time_number")
     private double visitTimeNumber;
+
+    @SerializedName("travel_time_number")
     private double travelTimeNumber;
+
+    @SerializedName("update_address")
     private boolean updateAddress;
+
+    @SerializedName("is_main_technical")
     private boolean isMainTechnical;
+
+    @SerializedName("signature_file_path")
     private String  signatureFilePath;
 
     public String getSignatureFilePath() {

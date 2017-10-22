@@ -67,6 +67,7 @@ import io.realm.Realm;
 
 import static com.app.checkinmap.ui.activity.CheckPointMapActivity.ARG_CHECK_POINT_LOCATION_ID;
 import static com.app.checkinmap.ui.activity.CheckPointMapActivity.PERMISSION_LOCATION_REQUEST;
+import static com.app.checkinmap.ui.activity.CheckPointMapActivity.REQUEST_CHECK_IN;
 import static com.app.checkinmap.ui.activity.MyAccountsActivity.REQUEST_ACCOUNT_SELECTION;
 import static com.app.checkinmap.ui.activity.MyLeadsActivity.REQUEST_LEAD_SELECTION;
 import static com.app.checkinmap.ui.activity.MyOrderWorksActivity.REQUEST_WORK_ORDER_SELECTION;
@@ -95,6 +96,8 @@ public class DashBoardActivity extends AppCompatActivity
     private boolean                     mLocationPermissionGranted=false;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private MaterialDialog              mMaterialProgressDialog;
+    private int                         mMapReadyCall=0;
+    private boolean                     mPermissionDialogCall = false;
 
 
     /**
@@ -122,6 +125,7 @@ public class DashBoardActivity extends AppCompatActivity
         /*Here we get initialize the map*/
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+
         mapFragment.getMapAsync(this);
 
         //Here we initialize the toolbar an main menu
@@ -134,14 +138,16 @@ public class DashBoardActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        /*Here we check the permission*/
-        if(checkAndRequestPermissions()){
-            if(isGpsEnable()){
+        if(mMapReadyCall==0){
+            mMapReadyCall++;
+             /*Here we check the permission*/
+            if(checkAndRequestPermissions()){
+                if(isGpsEnable()){
                 /*Here we request a explicit user location request*/
                 getUserLocation();
-            }else{
+              }else{
                 showGpsDisableMessage();
+              }
             }
         }
     }
@@ -197,9 +203,14 @@ public class DashBoardActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        BusProvider.getInstance().register(this);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
-        BusProvider.getInstance().register(this);
         if(mLocationSettingCalled){
             mLocationSettingCalled=false;
             if(isGpsEnable()){
@@ -234,7 +245,8 @@ public class DashBoardActivity extends AppCompatActivity
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED
                         && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted=true;
-                  getUserLocation();
+                    mPermissionDialogCall = false;
+                    getUserLocation();
                 } else {
                     showRationale();
                 }
@@ -249,13 +261,12 @@ public class DashBoardActivity extends AppCompatActivity
             case REQUEST_ACCOUNT_SELECTION:
             case REQUEST_LEAD_SELECTION:
             case REQUEST_WORK_ORDER_SELECTION:
+            case REQUEST_CHECK_IN:
                 if(resultCode == RESULT_OK){
                    // startActivity(HistoryActivity.getIntent(this));
                     long checkPointLocationId = data.getExtras().getLong(ARG_CHECK_POINT_LOCATION_ID);
 
                     showSummaryVisitDialog(checkPointLocationId);
-
-                    //Toast.makeText(this,"Mostrar info para: "+checkPointLocationId,Toast.LENGTH_LONG).show();
                 }
                 break;
         }
@@ -422,10 +433,12 @@ public class DashBoardActivity extends AppCompatActivity
      * permissions needed
      */
     private  boolean checkAndRequestPermissions() {
+
         int locationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         int storagePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
         List<String> listPermissionsNeeded = new ArrayList<>();
+
         if (locationPermission != PackageManager.PERMISSION_GRANTED) {
             listPermissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
         }
@@ -435,8 +448,11 @@ public class DashBoardActivity extends AppCompatActivity
         }
 
         if (!listPermissionsNeeded.isEmpty()) {
-            ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]),PERMISSION_LOCATION_REQUEST);
-            mLocationPermissionGranted=false;
+            if(!mPermissionDialogCall){
+                mPermissionDialogCall=true;
+                mLocationPermissionGranted=false;
+                ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]),PERMISSION_LOCATION_REQUEST);
+            }
             return false;
         }
         mLocationPermissionGranted=true;
@@ -563,8 +579,14 @@ public class DashBoardActivity extends AppCompatActivity
                         /*Here we start the location service*/
                         startLocationService();
 
-                            /*Here we update the button ui*/
+                        /*Here we update the button ui*/
                         updateButtonUi();
+
+                         /*Here we restart the ui if we were doing check in*/
+                        if(PreferenceManager.getInstance(getBaseContext()).isDoingCheckIn()){
+                            startActivityForResult(CheckPointMapActivity.getIntent(getApplicationContext(),null),
+                                    REQUEST_CHECK_IN);
+                        }
                     }
                 });
             }
@@ -882,14 +904,12 @@ public class DashBoardActivity extends AppCompatActivity
         if(visits.get(position).getRecordType().compareTo("0126A000000l3CzQAI")==0){
             objectId= visits.get(position).getLeadId();
             objectName = "Lead";
-            dataSend.put("Latitude",latitude);
-            dataSend.put("Longitude",longitude);
         }else{
             objectId = visits.get(position).getAddressId();
             objectName = "Direcciones__c";
-            dataSend.put("Coordenadas__Latitude__s",latitude);
-            dataSend.put("Coordenadas__Longitude__s",longitude);
         }
+        dataSend.put("Coordenadas__Latitude__s",latitude);
+        dataSend.put("Coordenadas__Longitude__s",longitude);
 
         ApiManager.getInstance().updateAddressCoordinates(this, objectId,objectName,dataSend, new ApiManager.OnObjectListener() {
             @Override
