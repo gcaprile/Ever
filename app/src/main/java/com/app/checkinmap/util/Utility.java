@@ -159,7 +159,7 @@ public class Utility {
      * for the visit
      */
     public static String getDurationInHours(String dateStart,String dateFinish){
-        String time ="";
+        String time ="0 horas 0 min";
 
         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
@@ -178,6 +178,7 @@ public class Utility {
             long diffHours = diff / (60 * 60 * 1000) % 24;
            // long diffDays = diff / (24 * 60 * 60 * 1000);
 
+            time = "";
             time = diffHours+" horas "+diffMinutes+" min";
 
         } catch (Exception e) {

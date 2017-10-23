@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.util.Base64;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -41,6 +42,14 @@ public class ImageHelper {
     public static File saveBitMap(Bitmap bitmap,String workOrderId){
         File file=null;
         try {
+
+            /*double percentSize = 0.75;
+
+            double newHeight = bitmap.getHeight() - (bitmap.getHeight()*percentSize);
+            double newWidth =  bitmap.getWidth() -  (bitmap.getWidth()*percentSize);
+
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, (int)newWidth, (int)newHeight, false);*/
+
             file = createImageFile(workOrderId);
 
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();

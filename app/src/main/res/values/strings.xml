@@ -69,6 +69,8 @@
     <string name="user_name">Nombre de usuario</string>
     <string name="account_name">Nombre de la cuenta</string>
     <string name="profile_name">Nombre del perfil</string>
+    <string name="visit_time">Tiempo de visita:</string>
+    <string name="route_time">Tiempo de viaje:</string>
 
 
     <string name="welcome">Welcome %s</string>

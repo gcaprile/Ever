@@ -108,6 +108,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
     private CheckPointData              mCheckPointData;
     private boolean                     mFirstLoadRequest=true;
     private boolean                     mNoAddressLocation=false;
+    private boolean                     mRestoredCheckInProgress = false;
 
     /**
      * This method help us to get a single
@@ -229,7 +230,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode){
             case SIGNATURE_REQUEST:
-                if(resultCode==RESULT_OK){
+               if(resultCode==RESULT_OK){
                     mCheckPointLocation.setSignatureFilePath(data.getExtras().getString(ARG_SING_FILE_PATH));
                    getUserLocationToFinalize();
                 }
@@ -265,6 +266,7 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
 
     @OnClick(R.id.button_check)
     public void checkUserLocation(){
+
         if(mIsChecking){
             showCheckInFinalizeMessage();
         }else{
@@ -612,8 +614,9 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
      * check in data
      */
     public void saveCheckData(double latitude, double longitude){
-        if(isInRadius(latitude,longitude)){
-            if(mIsChecking){
+
+        if(mIsChecking){
+            if(isInRadius(latitude,longitude)){
                 mCheckPointLocation = new CheckPointLocation();
                 mCheckPointLocation.setId(System.currentTimeMillis());
                 mCheckPointLocation.setCheckInLatitude(latitude);
@@ -663,53 +666,52 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
                         break;
                 }
             }else{
-                mCheckPointLocation.setCheckOutLatitude(latitude);
-                mCheckPointLocation.setCheckOutLongitude(longitude);
-                mCheckPointLocation.setCheckOutDate(Utility.getCurrentDate());
-
-
-                String visitTypeName ="";
-                switch (mCheckPointData.getCheckPointType()){
-                    case 1:
-                        visitTypeName = "cotacto";
-                        break;
-                    case 2:
-                        visitTypeName = "lead";
-                        break;
-                    case 3:
-                        visitTypeName = "tecnica";
-                        break;
-                }
-
-                /*Here we create the name*/
-                String name = "";
-                if(mCheckPointData.getName()!=null){
-                    name = Utility.getDateForName()+"-"+mCheckPointData.getName()+"-"+
-                            Utility.getRestClient().getClientInfo().displayName+"-"+visitTypeName+
-                            "-"+ DatabaseManager.getInstance().getCorrelativeCheckPoint(PreferenceManager.getInstance(this).getRouteId());
-                }else{
-                    name = Utility.getDateForName()+"-"+
-                            Utility.getRestClient().getClientInfo().username+"-"+visitTypeName+
-                            "-"+ DatabaseManager.getInstance().getCorrelativeCheckPoint(PreferenceManager.getInstance(this).getRouteId());
-                }
-                Log.d("checkP Name",name);
-                mCheckPointLocation.setName(name);
-                mCheckPointLocation.setRouteId(String.valueOf(PreferenceManager.getInstance(this).getRouteId()));
-                mCheckPointLocation.setVisitTime(Utility.getDurationInHours(mCheckPointLocation.getCheckInDate(),mCheckPointLocation.getCheckOutDate()));
-                mCheckPointLocation.setVisitTimeNumber(Utility.getDurationInHoursNumber(mCheckPointLocation.getCheckInDate(),mCheckPointLocation.getCheckOutDate()));
-                String travelStartDate = DatabaseManager.getInstance().getTravelStartDate(PreferenceManager.getInstance(this).getRouteId());
-                mCheckPointLocation.setTravelTime(Utility.getDurationInHours(travelStartDate,mCheckPointLocation.getCheckInDate()));
-                mCheckPointLocation.setTravelTimeNumber(Utility.getDurationInHoursNumber(travelStartDate,mCheckPointLocation.getCheckInDate()));
-                mCheckPointLocation.setAddress(mCheckPointData.getAddress());
-
-                /*Here we save the data in Real*/
-                saveCheckPointLocation();
+                showMessage(R.string.no_check_in_available);
+                restartCheckInUi();
             }
         }else{
-            showMessage(R.string.no_check_in_available);
-            restartCheckInUi();
-        }
+            mCheckPointLocation.setCheckOutLatitude(latitude);
+            mCheckPointLocation.setCheckOutLongitude(longitude);
+            mCheckPointLocation.setCheckOutDate(Utility.getCurrentDate());
 
+
+            String visitTypeName ="";
+            switch (mCheckPointData.getCheckPointType()){
+                case 1:
+                    visitTypeName = "cotacto";
+                    break;
+                case 2:
+                    visitTypeName = "lead";
+                    break;
+                case 3:
+                    visitTypeName = "tecnica";
+                    break;
+            }
+
+                /*Here we create the name*/
+            String name = "";
+            if(mCheckPointData.getName()!=null){
+                name = Utility.getDateForName()+"-"+mCheckPointData.getName()+"-"+
+                        Utility.getRestClient().getClientInfo().displayName+"-"+visitTypeName+
+                        "-"+ DatabaseManager.getInstance().getCorrelativeCheckPoint(PreferenceManager.getInstance(this).getRouteId());
+            }else{
+                name = Utility.getDateForName()+"-"+
+                        Utility.getRestClient().getClientInfo().username+"-"+visitTypeName+
+                        "-"+ DatabaseManager.getInstance().getCorrelativeCheckPoint(PreferenceManager.getInstance(this).getRouteId());
+            }
+            Log.d("checkP Name",name);
+            mCheckPointLocation.setName(name);
+            mCheckPointLocation.setRouteId(String.valueOf(PreferenceManager.getInstance(this).getRouteId()));
+            mCheckPointLocation.setVisitTime(Utility.getDurationInHours(mCheckPointLocation.getCheckInDate(),mCheckPointLocation.getCheckOutDate()));
+            mCheckPointLocation.setVisitTimeNumber(Utility.getDurationInHoursNumber(mCheckPointLocation.getCheckInDate(),mCheckPointLocation.getCheckOutDate()));
+            String travelStartDate = DatabaseManager.getInstance().getTravelStartDate(PreferenceManager.getInstance(this).getRouteId());
+            mCheckPointLocation.setTravelTime(Utility.getDurationInHours(travelStartDate,mCheckPointLocation.getCheckInDate()));
+            mCheckPointLocation.setTravelTimeNumber(Utility.getDurationInHoursNumber(travelStartDate,mCheckPointLocation.getCheckInDate()));
+            mCheckPointLocation.setAddress(mCheckPointData.getAddress());
+
+                /*Here we save the data in Real*/
+            saveCheckPointLocation();
+        }
     }
 
 
@@ -847,7 +849,10 @@ public class CheckPointMapActivity extends AppCompatActivity implements OnMapRea
 
             /*Here we update the button */
             if(PreferenceManager.getInstance(this).isDoingCheckIn()){
-                restartCheckInProgressUi();
+                if(!mRestoredCheckInProgress){
+                    mRestoredCheckInProgress = true;
+                    restartCheckInProgressUi();
+                }
             }else{
                 if(!mBtnCheck.isShown()){
                     if(!mIsChecking){

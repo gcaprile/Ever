@@ -39,6 +39,9 @@ public class Account  implements Parcelable{
     @SerializedName("Description")
     private String mDescription;
 
+    @SerializedName("Numero_Contactos__c")
+    private int mNumberContacts;
+
     public String getId() {
         return mId;
     }
@@ -111,6 +114,14 @@ public class Account  implements Parcelable{
         this.mDescription = description;
     }
 
+    public int getNumberContacts() {
+        return mNumberContacts;
+    }
+
+    public void setNumberContacts(int numberContacts) {
+        this.mNumberContacts = numberContacts;
+    }
+
     public String getAddress(){
         String address ="";
         if(mStreet!=null){
@@ -145,6 +156,7 @@ public class Account  implements Parcelable{
         mPostalCode = in.readString();
         mCountry = in.readString();
         mDescription = in.readString();
+        mNumberContacts = in.readInt();
     }
 
     @Override
@@ -158,6 +170,7 @@ public class Account  implements Parcelable{
         dest.writeString(mPostalCode);
         dest.writeString(mCountry);
         dest.writeString(mDescription);
+        dest.writeInt(mNumberContacts);
     }
 
     @Override

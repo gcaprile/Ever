@@ -157,4 +157,34 @@ public class DatabaseManager {
         realm.close();
         return route.getName();
     }
+
+
+    /**
+     * This method help us to get the rout start date
+     */
+    public String getRouteStartDate(long id){
+        Route route = new Route();
+        Realm realm = Realm.getDefaultInstance();
+        Route routeQuery = realm.where(Route.class).equalTo("id",id ).findFirst();
+        if(routeQuery!=null){
+            route = realm.copyFromRealm(routeQuery);
+        }
+        realm.close();
+        return route.getStartDate();
+    }
+
+
+    /**
+     * This method help us to get the route end date
+     */
+    public String getRouteEndDate(long id){
+        Route route = new Route();
+        Realm realm = Realm.getDefaultInstance();
+        Route routeQuery = realm.where(Route.class).equalTo("id",id ).findFirst();
+        if(routeQuery!=null){
+            route = realm.copyFromRealm(routeQuery);
+        }
+        realm.close();
+        return route.getEndDate();
+    }
 }

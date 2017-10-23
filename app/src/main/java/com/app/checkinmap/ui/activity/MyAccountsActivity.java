@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,6 +17,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.model.Account;
 import com.app.checkinmap.model.AccountAddress;
@@ -124,7 +127,7 @@ public class MyAccountsActivity extends AppCompatActivity implements AccountAdap
     public void getAccountFromSalesForce(){
         //String osql = "SELECT Id, Name, Phone, Emasal_Address__c, Pais__c, Description FROM Account order by Id";
 
-        String osql ="SELECT Id, Name, Phone, BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry, Description FROM Account order by Id";
+        String osql ="SELECT Id, Name, Phone, BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry, Description, Numero_Contactos__c FROM Account order by Id";
 
         ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
             @Override
@@ -192,12 +195,37 @@ public class MyAccountsActivity extends AppCompatActivity implements AccountAdap
 
     @Override
     public void onItemClick(Account account) {
-        startActivityForResult(AccountDetailActivity.getIntent(getApplicationContext(),account),REQUEST_ADDRESS_SELECTION);
+        if(account.getNumberContacts()>0){
+            startActivityForResult(AccountDetailActivity.getIntent(getApplicationContext(),account),REQUEST_ADDRESS_SELECTION);
+        }else{
+            showMessage(R.string.no_contacts);
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mSearchResultReceiver);
+    }
+
+    /**
+     * This method help us to show a single
+     * message
+     */
+    public void showMessage(int message){
+        new MaterialDialog.Builder(this)
+                .title(R.string.app_name)
+                .content(message)
+                .positiveColorRes(R.color.colorPrimary)
+                .positiveText(R.string.accept)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                        dialog.dismiss();
+                    }
+                })
+                .cancelable(false)
+                .show();
     }
 }

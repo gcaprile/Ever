@@ -211,7 +211,6 @@ public class MyOrderWorksActivity extends AppCompatActivity implements WorkOrder
     @Override
     public void onItemClick(WorkOrder workOrder) {
         if(PreferenceManager.getInstance(this).isInRoute()){
-
             CheckPointData checkPointData = new CheckPointData();
             checkPointData.setId(workOrder.getWorkOrderId());
             checkPointData.setContactId(workOrder.getWorkOrderDetail().getContactId());

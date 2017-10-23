@@ -79,7 +79,7 @@ public class HistoryActivity extends AppCompatActivity {
         /*Here we set the route data*/
         mTvRouteName.setText(DatabaseManager.getInstance().getRouteName(PreferenceManager.getInstance(this).getRouteId()));
         mTvDistance.setText(getRoutDistance());
-        mTvUsedTime.setText(getRouteTime());
+        mTvUsedTime.setText(getRouteTimeSecondWay());
         mTvVisitNumber.setText(String.valueOf(DatabaseManager.getInstance().getCheckPointLocationList(
                 PreferenceManager.getInstance(this).getRouteId()
         ).size()));
@@ -87,7 +87,7 @@ public class HistoryActivity extends AppCompatActivity {
         //mRv.setHasFixedSize(true);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mRv.setLayoutManager(layoutManager);
-        HistoryAdapterList adapter = new HistoryAdapterList(getCheckPointLocations());
+        HistoryAdapterList adapter = new HistoryAdapterList(getCheckPointLocations(),this);
         mRv.setAdapter(adapter);
 
         /*Here we show a success message*/
@@ -124,14 +124,25 @@ public class HistoryActivity extends AppCompatActivity {
             locationRouteStart.setLongitude(userLocations.get(0).getLongitude());
             locationRouteStart.setLatitude(userLocations.get(0).getLatitude());
 
+            Location locationRouteEnd = new Location("");
+            locationRouteEnd.setLongitude(userLocations.get(userLocations.size()-1).getLongitude());
+            locationRouteEnd.setLatitude(userLocations.get(userLocations.size()-1).getLatitude());
+
             if(checkPointLocations.size()>0){
 
                 Location locationRouteFirstPoint = new Location("");
                 locationRouteFirstPoint.setLongitude(checkPointLocations.get(0).getCheckInLongitude());
                 locationRouteFirstPoint.setLatitude(checkPointLocations.get(0).getCheckInLatitude());
 
+                Location locationRouteLastPoint = new Location("");
+                locationRouteLastPoint.setLongitude(checkPointLocations.get(checkPointLocations.size()-1).getCheckInLongitude());
+                locationRouteLastPoint.setLatitude(checkPointLocations.get(checkPointLocations.size() - 1).getCheckInLatitude());
+
                  /*First distance in the route*/
                 distance = distance + locationRouteStart.distanceTo(locationRouteFirstPoint);
+
+                 /*Last distance in the route*/
+                distance = distance + locationRouteEnd.distanceTo(locationRouteLastPoint);
             }
         }
 
@@ -212,7 +223,40 @@ public class HistoryActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+        return time;
+    }
 
+    /**
+     * This method help us to get the total time
+     * used in the route
+     */
+    public String getRouteTimeSecondWay(){
+        String time ="0 horas";
+        String dateStart = DatabaseManager.getInstance().getRouteStartDate(PreferenceManager.getInstance(this).getRouteId());
+        String dateEnd = DatabaseManager.getInstance().getRouteEndDate(PreferenceManager.getInstance(this).getRouteId());
+
+        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+
+        Date d1;
+        Date d2;
+
+        try {
+            d1 = format.parse(dateStart);
+            d2 = format.parse(dateEnd);
+
+            //diff check ins
+            long totalDiff = d2.getTime() - d1.getTime();
+
+            long diffSeconds = totalDiff / 1000 % 60;
+            long diffMinutes = totalDiff / (60 * 1000) % 60;
+            long diffHours = totalDiff / (60 * 60 * 1000) % 24;
+            long diffDays = totalDiff / (24 * 60 * 60 * 1000);
+
+            time = diffHours+" horas "+ diffMinutes+" minutos ";
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return time;
     }

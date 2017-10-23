@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,6 +17,8 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.app.checkinmap.R;
 import com.app.checkinmap.model.Account;
 import com.app.checkinmap.model.AccountAddress;
@@ -120,7 +123,7 @@ public class SearchableAccountsActivity extends AppCompatActivity implements Acc
      */
     public void getAccountFromSalesForce(){
 
-        String osql ="SELECT Id, Name, Phone, BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry, Description FROM Account order by Id";
+        String osql ="SELECT Id, Name, Phone, BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry, Description, Numero_Contactos__c FROM Account order by Id";
 
         ApiManager.getInstance().getJSONObject(this, osql, new ApiManager.OnObjectListener() {
             @Override
@@ -219,13 +222,37 @@ public class SearchableAccountsActivity extends AppCompatActivity implements Acc
 
     @Override
     public void onItemClick(Account account) {
-        //startActivityForResult(AccountDetailActivity.getIntent(getApplicationContext(),account),REQUEST_ADDRESS_SELECTION);
-         /*Here we notify the result*/
-        Intent intent= new Intent();
-        intent.setAction(ACTION_SEARCH_RESULT);
-        intent.putExtra(MyAccountsActivity.ARG_ADDRESS_DATA,account);
-        sendBroadcast(intent);
+        if(account.getNumberContacts()>0){
+             /*Here we notify the result*/
+            Intent intent= new Intent();
+            intent.setAction(ACTION_SEARCH_RESULT);
+            intent.putExtra(MyAccountsActivity.ARG_ADDRESS_DATA,account);
+            sendBroadcast(intent);
 
-        finish();
+            finish();
+        }else{
+            showMessage(R.string.no_contacts);
+        }
+    }
+
+    /**
+     * This method help us to show a single
+     * message
+     */
+    public void showMessage(int message){
+        new MaterialDialog.Builder(this)
+                .title(R.string.app_name)
+                .content(message)
+                .positiveColorRes(R.color.colorPrimary)
+                .positiveText(R.string.accept)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                        dialog.dismiss();
+                    }
+                })
+                .cancelable(false)
+                .show();
     }
 }
