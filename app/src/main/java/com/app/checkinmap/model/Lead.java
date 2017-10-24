@@ -39,10 +39,10 @@ public class Lead implements Parcelable{
     @SerializedName("Country")
     private String mCountry;
 
-    @SerializedName("Latitude")
+    @SerializedName("Coordenadas__Latitude__s")
     private double mLatitude;
 
-    @SerializedName("Longitude")
+    @SerializedName("Coordenadas__Longitude__s")
     private double mLongitude;
 
     protected Lead(Parcel in) {

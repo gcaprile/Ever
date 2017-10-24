@@ -119,7 +119,7 @@ public class SearchableLeadsActivity extends AppCompatActivity implements LeadAd
      */
     public void getLeadFromSalesForce(){
 
-        String osql = "SELECT Id, Name, Company, Street, City, State, PostalCode, Country, Pais__c, Latitude, Longitude" +
+        String osql = "SELECT Id, Name, Company, Street, City, State, PostalCode, Country, Pais__c, Coordenadas__Latitude__s, Coordenadas__Longitude__s" +
                 " FROM Lead WHERE Pais__c = '"+Utility.getUserCountry()+"'";
 
 

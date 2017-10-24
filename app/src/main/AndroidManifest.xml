@@ -64,7 +64,6 @@
             android:name=".ui.activity.MyAccountsActivity"
             android:screenOrientation="portrait">
 
-            <!-- enable the search dialog to send searches to SearchableWorkOrderActivity -->
             <meta-data
                 android:name="android.app.default_searchable"
                 android:value=".ui.activity.SearchableAccountsActivity" />
@@ -81,8 +80,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.activity.MyLeadsActivity"
-            android:screenOrientation="portrait" >
-            <!-- enable the search dialog to send searches to SearchableWorkOrderActivity -->
+            android:screenOrientation="portrait">
             <meta-data
                 android:name="android.app.default_searchable"
                 android:value=".ui.activity.SearchableLeadsActivity" />
@@ -98,36 +96,42 @@
                 android:value=".ui.activity.SearchableWorkOrderActivity" />
         </activity>
 
-        <activity android:name=".ui.activity.SearchableWorkOrderActivity"
+        <activity
+            android:name=".ui.activity.SearchableWorkOrderActivity"
             android:screenOrientation="portrait">
 
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
 
-            <meta-data android:name="android.app.searchable"
-                android:resource="@xml/searchable"/>
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
         </activity>
-        <activity android:name=".ui.activity.SearchableLeadsActivity"
+        <activity
+            android:name=".ui.activity.SearchableLeadsActivity"
             android:screenOrientation="portrait">
 
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
 
-            <meta-data android:name="android.app.searchable"
-                android:resource="@xml/searchable"/>
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
         </activity>
 
-        <activity android:name=".ui.activity.SearchableAccountsActivity"
+        <activity
+            android:name=".ui.activity.SearchableAccountsActivity"
             android:screenOrientation="portrait">
 
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
 
-            <meta-data android:name="android.app.searchable"
-                android:resource="@xml/searchable"/>
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
         </activity>
     </application>
 
